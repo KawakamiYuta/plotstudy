@@ -114,3 +114,37 @@ button {
     background-color: #0f0f0f69;
   }
 }
+/* 全体を縦レイアウト */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* 上のコントロールパネル */
+.control {
+  height: 60px;            /* 固定高さ */
+  border-bottom: 1px solid #ccc;
+}
+
+/* 下のメイン領域（横並び） */
+.main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 左：キャンバス */
+.left {
+  flex: 1;                 /* 可変 */
+  background: black;
+  display: flex;
+}
+
+/* 右：テーブル */
+.right {
+  width: 400px;            /* 固定幅 */
+  border-left: 1px solid #ccc;
+  overflow: auto;
+}

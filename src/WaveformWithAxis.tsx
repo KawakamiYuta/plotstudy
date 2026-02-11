@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { FrameData, frameStore } from "./frameStore";
 
 const WIDTH = 800;
-const HEIGHT = 1000;
+const HEIGHT = 720;
 
 const MARGIN = {
     left: 60,
@@ -199,7 +199,8 @@ export default function WaveformWithAxis() {
         return () => unsubscribe();
     }, []);
 
-    return <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} />;
+    // return <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} />;
+    return <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />;
 }
 
 // FFTエリア用グリッド描画
