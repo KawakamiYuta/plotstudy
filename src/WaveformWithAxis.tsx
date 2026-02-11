@@ -13,8 +13,9 @@ const MARGIN = {
 
 const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
 const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
-const WAVE_HEIGHT = INNER_HEIGHT*0.5;
-const FFT_HEIGHT = INNER_HEIGHT*0.5;
+const WAVE_HEIGHT = INNER_HEIGHT*0.475;
+const FFT_HEIGHT = INNER_HEIGHT*0.475;
+const MARGIN_HEIGHT = INNER_HEIGHT*0.05;
 
 function drawSpectrum(
   ctx: CanvasRenderingContext2D,
@@ -175,9 +176,19 @@ export default function WaveformWithAxis() {
             ctx.save();
             ctx.translate(MARGIN.left, MARGIN.top);
 
+            // 波形エリア
             drawGrid(ctx);
             drawWave(ctx, samples);
-            drawSpectrum(ctx, frame.spectrum, WAVE_HEIGHT, FFT_HEIGHT);
+
+            // FFTエリア
+            drawFftGrid(ctx);
+            drawSpectrum(ctx, frame.spectrum, WAVE_HEIGHT + MARGIN_HEIGHT, FFT_HEIGHT);
+
+            ctx.restore();
+
+            // 軸ラベル
+            drawAxisLabels(ctx, samples.length);
+            drawFftAxisLabels(ctx, frame.spectrum.length);
 
             ctx.restore();
             drawAxisLabels(ctx, samples.length);
@@ -190,3 +201,56 @@ export default function WaveformWithAxis() {
 
     return <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} />;
 }
+
+// FFTエリア用グリッド描画
+function drawFftGrid(ctx: CanvasRenderingContext2D) {
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+
+    // 横グリッド（0〜1）
+    for (let i = 0; i <= 5; i++) {
+        const y = WAVE_HEIGHT + MARGIN_HEIGHT+ (FFT_HEIGHT / 5) * i;
+        ctx.moveTo(0, y);
+        ctx.lineTo(INNER_WIDTH, y);
+    }
+
+    // 縦グリッド
+    for (let i = 0; i <= 10; i++) {
+        const x = (INNER_WIDTH / 10) * i;
+        ctx.moveTo(x, WAVE_HEIGHT);
+        ctx.lineTo(x, WAVE_HEIGHT + MARGIN_HEIGHT + FFT_HEIGHT);
+    }
+
+    ctx.stroke();
+    ctx.strokeStyle = "#888";
+    ctx.strokeRect(0, WAVE_HEIGHT + MARGIN_HEIGHT, INNER_WIDTH, FFT_HEIGHT);
+}
+
+// FFTエリア用軸ラベル描画
+function drawFftAxisLabels(ctx: CanvasRenderingContext2D, spectrumLength: number) {
+    ctx.fillStyle = "white";
+    ctx.font = "12px monospace";
+
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    // Y軸（dB 0〜MAX_DB）
+    const MAX_DB = 256;
+    for (let i = 0; i <= 4; i++) {
+        const value = MAX_DB - (MAX_DB / 4) * i;
+        const y = MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT + (FFT_HEIGHT / 4) * i;
+        ctx.fillText(value.toFixed(0), MARGIN.left - 10, y);
+    }
+
+    // X軸
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    for (let i = 0; i <= 10; i++) {
+        const ratio = i / 10;
+        const freqIndex = Math.floor(spectrumLength * ratio);
+        const x = MARGIN.left + INNER_WIDTH * ratio;
+        ctx.fillText(freqIndex.toString(), x, MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT+ FFT_HEIGHT + 5);
+    }
+}
+
