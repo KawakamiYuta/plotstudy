@@ -54,7 +54,7 @@ fn generate_spectrum() -> Vec<f32> {
     spectrum
 }
 
-#[derive(serde::Serialize, Clone)]
+#[derive(serde::Serialize, Clone, serde::Deserialize)]
 struct FrameData {
     frame_number: u64,
     samples: Vec<f32>,
@@ -70,21 +70,29 @@ fn send_frame(app: &tauri::AppHandle) {
     app.emit("wave-frame", frame).unwrap();
 }
 
+#[tauri::command]
+fn pull_frame(app: tauri::AppHandle) {
+    send_frame(&app);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
             let app_handle = app.handle().clone();
 
-            thread::spawn(move || {
-                loop {
-                    send_frame(&app_handle);
-                    thread::sleep(Duration::from_millis(100));
-                }
-            });
+            // thread::spawn(move || {
+            //     loop {
+            //         send_frame(&app_handle);
+            //         thread::sleep(Duration::from_millis(100));
+            //     }
+            // });
 
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![
+            pull_frame
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
