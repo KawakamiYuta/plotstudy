@@ -1,21 +1,23 @@
 import { listen } from "@tauri-apps/api/event";
+export interface FrameData {
+  frame_number: number;
+  samples: number[];
+  spectrum: number[];
+}
 
-type FrameListener = (samples: number[]) => void;
+type FrameListener = (frame: FrameData) => void;
 
 class FrameStore {
-  private latestSamples: number[] | null = null;
+  private latestFrame: FrameData | null = null;
   private listeners: FrameListener[] = [];
   private running = false;
 
   async init() {
-    await listen<number[]>("wave-frame", (event) => {
-      // 常に最新だけ保持（古いのは捨てる）
-      this.latestSamples = event.payload;
-      console.log("Received frame");
+    await listen<FrameData>("wave-frame", (event) => {
+      this.latestFrame = event.payload;
     });
 
     this.startRenderLoop();
-    console.log("FrameStore initialized");
   }
 
 subscribe(listener: FrameListener) {
@@ -30,9 +32,9 @@ subscribe(listener: FrameListener) {
     this.running = true;
 
     const loop = () => {
-      if (this.latestSamples) {
-        const frame = this.latestSamples;
-        this.latestSamples = null;
+      if (this.latestFrame) {
+        const frame = this.latestFrame;
+        this.latestFrame = null;
 
         // 購読者へ通知
         for (const l of this.listeners) {
