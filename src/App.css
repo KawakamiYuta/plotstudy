@@ -144,7 +144,7 @@ button {
 
 /* 右：テーブル */
 .right {
-  width: 400px;            /* 固定幅 */
+  width: 500px;            /* 固定幅 */
   border-left: 1px solid #ccc;
   overflow: auto;
 }

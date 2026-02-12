@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { FrameData, frameStore } from "./frameStore";
 
-const WIDTH = 800;
-const HEIGHT = 720;
+// const WIDTH = 800;
+// const HEIGHT = 720;
 
 const MARGIN = {
     left: 60,
@@ -11,40 +11,41 @@ const MARGIN = {
     bottom: 40,
 };
 
-const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
-const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
-const WAVE_HEIGHT = INNER_HEIGHT*0.475;
-const FFT_HEIGHT = INNER_HEIGHT*0.475;
-const MARGIN_HEIGHT = INNER_HEIGHT*0.05;
+// const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
+// const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
+// const WAVE_HEIGHT = INNER_HEIGHT*0.475;
+// const FFT_HEIGHT = INNER_HEIGHT*0.475;
+// const MARGIN_HEIGHT = INNER_HEIGHT*0.05;
 
 function drawSpectrum(
-  ctx: CanvasRenderingContext2D,
-  spectrum: number[],
-  offsetY: number,
-  height: number
+    ctx: CanvasRenderingContext2D,
+    spectrum: number[],
+    offsetY: number,
+    height: number,
+    INNER_WIDTH: number
 ) {
-  if (!spectrum.length) return;
+    if (!spectrum.length) return;
 
-  const MAX_DB = 256; // 適宜調整
-  const barWidth = INNER_WIDTH / spectrum.length;
+    const MAX_DB = 256; // 適宜調整
+    const barWidth = INNER_WIDTH / spectrum.length;
 
-  ctx.fillStyle = "#f28e2b";
+    ctx.fillStyle = "#f28e2b";
 
-  for (let i = 0; i < spectrum.length; i++) {
-    const value = spectrum[i];
+    for (let i = 0; i < spectrum.length; i++) {
+        const value = spectrum[i];
 
-    // dBなら正規化
-    const normalized = Math.max(0, value) / MAX_DB;
+        // dBなら正規化
+        const normalized = Math.max(0, value) / MAX_DB;
 
-    const barHeight = normalized * height;
-    const x = i * barWidth;
-    const y = offsetY + (height - barHeight);
+        const barHeight = normalized * height;
+        const x = i * barWidth;
+        const y = offsetY + (height - barHeight);
 
-    ctx.fillRect(x, y, barWidth - 1, barHeight);
-  }
+        ctx.fillRect(x, y, barWidth - 1, barHeight);
+    }
 }
 
-function drawWave(ctx: CanvasRenderingContext2D, samples: number[]) {
+function drawWave(ctx: CanvasRenderingContext2D, samples: number[], INNER_WIDTH: number, WAVE_HEIGHT: number) {
     if (samples.length === 0) return;
 
     const MAX_VALUE = 256;
@@ -83,7 +84,7 @@ function drawWave(ctx: CanvasRenderingContext2D, samples: number[]) {
 }
 
 
-function drawGrid(ctx: CanvasRenderingContext2D) {
+function drawGrid(ctx: CanvasRenderingContext2D, INNER_WIDTH: number, WAVE_HEIGHT: number) {
     ctx.strokeStyle = "#333";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -110,7 +111,9 @@ function drawGrid(ctx: CanvasRenderingContext2D) {
 
 function drawAxisLabels(
     ctx: CanvasRenderingContext2D,
-    sampleCount: number
+    sampleCount: number,
+    INNER_WIDTH: number,
+    WAVE_HEIGHT: number
 ) {
     ctx.fillStyle = "white";
     ctx.font = "12px monospace";
@@ -156,6 +159,28 @@ export default function WaveformWithAxis() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
+useEffect(() => {
+  const canvas = canvasRef.current!
+  const ctx = canvas.getContext("2d")!
+  ctxRef.current = ctx
+
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect()
+    const dpr = window.devicePixelRatio || 1
+
+    canvas.width = rect.width * dpr
+    canvas.height = rect.height * dpr
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  }
+
+  resize()
+
+  const observer = new ResizeObserver(resize)
+  observer.observe(canvas)
+
+  return () => observer.disconnect()
+}, []);
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -163,36 +188,46 @@ export default function WaveformWithAxis() {
         ctxRef.current = canvas.getContext("2d");
 
         const draw = (frame: FrameData) => {
-            let samples = frame.samples;
-            const ctx = ctxRef.current;
-            if (!ctx) return;
+            const canvas = canvasRef.current!
+            const ctx = ctxRef.current!
+            if (!ctx) return
 
-            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            const width = canvas.width
+            const height = canvas.height
 
-            // 背景
-            ctx.fillStyle = "black";
-            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            const innerWidth = width - MARGIN.left - MARGIN.right
+            const innerHeight = height - MARGIN.top - MARGIN.bottom
 
-            ctx.save();
-            ctx.translate(MARGIN.left, MARGIN.top);
+            const waveHeight = innerHeight * 0.475
+            const fftHeight = innerHeight * 0.475
+            const marginHeight = innerHeight * 0.05
 
-            // 波形エリア
-            drawGrid(ctx);
-            drawWave(ctx, samples);
+            ctx.clearRect(0, 0, width, height)
 
-            // FFTエリア
-            drawFftGrid(ctx);
-            drawSpectrum(ctx, frame.spectrum, WAVE_HEIGHT + MARGIN_HEIGHT, FFT_HEIGHT);
+            ctx.fillStyle = "black"
+            ctx.fillRect(0, 0, width, height)
 
-            ctx.restore();
+            ctx.save()
+            ctx.translate(MARGIN.left, MARGIN.top)
 
-            // 軸ラベル
-            drawAxisLabels(ctx, samples.length);
-            drawFftAxisLabels(ctx, frame.spectrum.length);
+            drawGrid(ctx, innerWidth, waveHeight)
+            drawWave(ctx, frame.samples, innerWidth, waveHeight)
 
-            ctx.restore();
-            drawAxisLabels(ctx, samples.length);
-        };
+            drawFftGrid(ctx, innerWidth, waveHeight, marginHeight, fftHeight)
+            drawSpectrum(
+                ctx,
+                frame.spectrum,
+                waveHeight + marginHeight,
+                fftHeight,
+                innerWidth
+            )
+
+            ctx.restore()
+
+            drawAxisLabels(ctx, frame.samples.length, innerWidth, waveHeight)
+            drawFftAxisLabels(ctx, frame.spectrum.length, innerWidth, waveHeight, marginHeight, fftHeight)
+        }
+
 
 
         const unsubscribe = frameStore.subscribe(draw);
@@ -204,14 +239,14 @@ export default function WaveformWithAxis() {
 }
 
 // FFTエリア用グリッド描画
-function drawFftGrid(ctx: CanvasRenderingContext2D) {
+function drawFftGrid(ctx: CanvasRenderingContext2D, INNER_WIDTH: number, WAVE_HEIGHT: number, MARGIN_HEIGHT: number, FFT_HEIGHT: number) {
     ctx.strokeStyle = "#333";
     ctx.lineWidth = 1;
     ctx.beginPath();
 
     // 横グリッド（0〜1）
     for (let i = 0; i <= 5; i++) {
-        const y = WAVE_HEIGHT + MARGIN_HEIGHT+ (FFT_HEIGHT / 5) * i;
+        const y = WAVE_HEIGHT + MARGIN_HEIGHT + (FFT_HEIGHT / 5) * i;
         ctx.moveTo(0, y);
         ctx.lineTo(INNER_WIDTH, y);
     }
@@ -229,7 +264,7 @@ function drawFftGrid(ctx: CanvasRenderingContext2D) {
 }
 
 // FFTエリア用軸ラベル描画
-function drawFftAxisLabels(ctx: CanvasRenderingContext2D, spectrumLength: number) {
+function drawFftAxisLabels(ctx: CanvasRenderingContext2D, spectrumLength: number, INNER_WIDTH: number, WAVE_HEIGHT: number, MARGIN_HEIGHT: number, FFT_HEIGHT: number) {
     ctx.fillStyle = "white";
     ctx.font = "12px monospace";
 
@@ -251,7 +286,7 @@ function drawFftAxisLabels(ctx: CanvasRenderingContext2D, spectrumLength: number
         const ratio = i / 10;
         const freqIndex = Math.floor(spectrumLength * ratio);
         const x = MARGIN.left + INNER_WIDTH * ratio;
-        ctx.fillText(freqIndex.toString(), x, MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT+ FFT_HEIGHT + 5);
+        ctx.fillText(freqIndex.toString(), x, MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT + FFT_HEIGHT + 5);
     }
 }
 
