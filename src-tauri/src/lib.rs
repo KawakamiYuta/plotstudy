@@ -4,6 +4,9 @@ use rand::Rng;
 use rand::RngExt;
 use std::thread;
 use std::time::Duration;
+use std::process::Command;
+use ini::Ini;
+use std::env;
 
 const FRAME_SIZE: usize = 2048;
 
@@ -75,6 +78,48 @@ fn pull_frame(app: tauri::AppHandle) {
     send_frame(&app);
 }
 
+#[derive(serde::Deserialize)]
+struct CommandParams {
+       threshold: i32,
+}
+
+// #[tauri::command]
+// fn run_external_command(params: CommandParams) {
+//     println!("Threshold: {}", params.threshold);
+
+//     std::process::Command::new("your_binary")
+//         .arg(params.threshold.to_string())
+//         .spawn()
+//         .expect("failed to execute");
+// }
+#[tauri::command]
+fn run_external_command(params: CommandParams) -> Result<(), String> {
+
+
+    let cwd = env::current_dir().unwrap();
+        println!("cwd: {} Threshold: {}", cwd.display(), params.threshold);
+    let ini_path = "config.ini";
+
+    // ini読み込み
+    let mut conf = Ini::load_from_file(ini_path)
+        .map_err(|e| format!("Failed to read ini: {}", e))?;
+
+    // セクション名は適宜変更
+    conf.with_section(Some("Execution"))
+        .set("threshold", params.threshold.to_string());
+
+    // 保存
+    conf.write_to_file(ini_path)
+        .map_err(|e| format!("Failed to write ini: {}", e))?;
+
+    // // 外部コマンド実行
+    // Command::new("your_binary")
+    //     .spawn()
+    //     .map_err(|e| format!("Failed to execute: {}", e))?;
+
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -91,7 +136,8 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            pull_frame
+            pull_frame,
+            run_external_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
