@@ -1,0 +1,41 @@
+.table-wrapper {
+  height: 100%;
+  overflow: auto;
+  background: #1e1e1e;
+  padding: 8px;
+}
+
+.detection-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 13px;
+  color: #ddd;
+}
+
+.detection-table thead {
+  position: sticky;
+  top: 0;
+  background: #252526;
+}
+
+.detection-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-weight: 500;
+  border-bottom: 1px solid #333;
+  color: #aaa;
+}
+
+.detection-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.detection-table tbody tr:hover {
+  background: #2d2d2d;
+}
+
+.detection-table tbody tr:nth-child(even) {
+  background: #222;
+}

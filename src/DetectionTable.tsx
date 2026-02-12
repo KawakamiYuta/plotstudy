@@ -4,6 +4,9 @@ import {
   getCoreRowModel,
   flexRender
 } from "@tanstack/react-table"
+import { useMemo } from "react"
+
+import "./DetectionTable.css"
 
 export type Detection = {
   frame_id: number
@@ -18,18 +21,32 @@ const columnHelper = createColumnHelper<Detection>()
 const columns = [
   columnHelper.accessor("frame_id", {
     header: "Frame",
+    cell: info => info.getValue(),
   }),
   columnHelper.accessor("freq", {
     header: "Freq (Hz)",
+    cell: info => info.getValue().toFixed(1),
   }),
   columnHelper.accessor("power", {
-    header: "Power",
+    header: "Power (dB)",
+    cell: info => info.getValue().toFixed(2),
   }),
   columnHelper.accessor("snr", {
     header: "SNR",
+    cell: info => {
+      const value = info.getValue()
+      let color = "#ccc"
+
+      if (value > 20) color = "#4caf50"
+      else if (value > 10) color = "#ff9800"
+      else color = "#f44336"
+
+      return <span style={{ color }}>{value.toFixed(1)}</span>
+    },
   }),
   columnHelper.accessor("timestamp", {
-    header: "Timestamp",
+    header: "Time",
+    cell: info => new Date(info.getValue()).toLocaleTimeString(),
   }),
 ]
 
@@ -53,7 +70,7 @@ export function generateFakeDetections(count: number): Detection[] {
 }
 
 export function DetectionTable() {
-  const data = generateFakeDetections(20);
+  const data = useMemo(() => generateFakeDetections(30), [])
 
   const table = useReactTable({
     data,
@@ -62,35 +79,39 @@ export function DetectionTable() {
   })
 
   return (
-    <table>
-      <thead>
-        {table.getHeaderGroups().map(headerGroup => (
-          <tr key={headerGroup.id}>
-            {headerGroup.headers.map(header => (
-              <th key={header.id}>
-                {flexRender(
-                  header.column.columnDef.header,
-                  header.getContext()
-                )}
-              </th>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody>
-        {table.getRowModel().rows.map(row => (
-          <tr key={row.id}>
-            {row.getVisibleCells().map(cell => (
-              <td key={cell.id}>
-                {flexRender(
-                  cell.column.columnDef.cell ?? cell.column.columnDef.accessorKey,
-                  cell.getContext()
-                )}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="table-wrapper">
+      <table className="detection-table">
+        <thead>
+          {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <th key={header.id}>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+
+        <tbody>
+          {table.getRowModel().rows.map(row => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map(cell => (
+                <td key={cell.id}>
+                  {flexRender(
+                    cell.column.columnDef.cell ??
+                      cell.column.columnDef.accessorKey,
+                    cell.getContext()
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
