@@ -1,7 +1,7 @@
 import React from "react";
 import { invoke } from "@tauri-apps/api/core";
 
-export default function ControlPanel() {
+export default function NextFrameButton() {
   const handleClick = async () => {
     try {
       await invoke("pull_frame");
@@ -13,7 +13,7 @@ export default function ControlPanel() {
   return (
     <div style={{ padding: 20 }}>
       <button onClick={handleClick}>
-        Request Frame
+        Next Frame
       </button>
     </div>
   );
