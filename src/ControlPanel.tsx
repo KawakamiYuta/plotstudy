@@ -28,9 +28,11 @@ export default function ControlPanel() {
       </button>
 
       <label>
-        Min SNR
+        Min SNR{" "}
         <input
-          type="number"
+          type="range"
+          min="0"
+          max="100"
           value={executionParams.threshold}
           onChange={(e) =>
             setExecutionParams({
