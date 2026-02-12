@@ -36,3 +36,22 @@
   border-radius: 4px;
   width: 80px;
 }
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.slider-group input[type="range"] {
+  width: 150px;
+}
+
+.slider-value {
+  width: 40px;
+  text-align: right;
+  font-family: monospace;
+  color: #4fc3f7;
+}

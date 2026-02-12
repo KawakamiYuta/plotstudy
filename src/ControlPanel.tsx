@@ -14,7 +14,7 @@ export default function ControlPanel() {
   const handleNextFrame = async () => {
     try {
       await invoke("pull_frame", {
-        threshold: executionParams.threshold, // ← Rustへ渡せる
+        threshold: executionParams.threshold,
       });
     } catch (e) {
       console.error(e);
@@ -27,8 +27,9 @@ export default function ControlPanel() {
         Next Frame
       </button>
 
-      <label>
-        Min SNR{" "}
+      <div className="slider-group">
+        <span className="slider-label">Min SNR</span>
+
         <input
           type="range"
           min="0"
@@ -36,12 +37,15 @@ export default function ControlPanel() {
           value={executionParams.threshold}
           onChange={(e) =>
             setExecutionParams({
-              ...executionParams,
               threshold: Number(e.target.value),
             })
           }
         />
-      </label>
+
+        <span className="slider-value">
+          {executionParams.threshold}
+        </span>
+      </div>
     </div>
   );
 }
