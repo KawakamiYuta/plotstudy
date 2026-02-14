@@ -1,8 +1,8 @@
 import React from "react";
 // import WaveformBarChart from "./WaveformBarChartCanvas";
-import WaveformWithAxis from "./WaveformWithAxis";
-import ControlPanel from "./ControlPanel";
-import { DetectionTable } from "./DetectionTable";
+import Plots from "./plots/components/Plots";
+import ControlPanel from "./controls/components/ControlPanel";
+import { DetectionTable } from "./tables/components/DetectionTable";
 
 import "./App.css";
 // import { ExecutionControl } from "./ExecutionControl";
@@ -20,7 +20,7 @@ export default function App() {
 
       <div className="main">
         <div className="left">
-          <WaveformWithAxis />
+          <Plots />
         </div>
 
         <div className="right">

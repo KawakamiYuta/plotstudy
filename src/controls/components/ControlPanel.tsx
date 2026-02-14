@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import "./ControlPanel.css";
+import "../styles/ControlPanel.css";
 
 export default function ControlPanel() {
   const [isOpen, setIsOpen] = useState(false);

@@ -1,9 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { frameStore } from "./frameStore";
+
+import { frameStore } from "./plots/models/frameStore";
 
 frameStore.init();
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <App />

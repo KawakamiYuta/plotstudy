@@ -38,6 +38,7 @@ subscribe(listener: FrameListener) {
 
         // 購読者へ通知
         for (const l of this.listeners) {
+          console.log("Notifying listener with frame", frame);
           l(frame);
         }
       }
