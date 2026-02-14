@@ -8,7 +8,48 @@ use std::process::Command;
 use ini::Ini;
 use std::env;
 
+mod signal;
+use signal::generate_pulse;
+use rustfft::{FftPlanner, num_complex::Complex};
 const FRAME_SIZE: usize = 2048;
+
+fn generate_gaussian_pulse_train(
+    pulse_width: usize,
+    pri: usize,
+    amplitude: f32,
+) -> Vec<f32> {
+    let mut buffer = vec![0.0f32; FRAME_SIZE];
+
+    let mut center = 0;
+
+    while center < FRAME_SIZE {
+        for i in 0..pulse_width {
+            let idx = center + i;
+            if idx >= FRAME_SIZE {
+                break;
+            }
+
+            let x = (i as f32 - pulse_width as f32 / 2.0)
+                / (pulse_width as f32 / 4.0);
+
+            let pulse = (-x * x).exp();
+            buffer[idx] += amplitude * pulse;
+        }
+
+        center += pri;
+    }
+
+    buffer
+}
+
+fn add_noise(buffer: &mut [f32], level: f32) {
+    let mut rng = rand::rng();
+
+    for v in buffer {
+        *v += rng.random_range(-level..level);
+    }
+}
+
 
 fn generate_wave() -> Vec<f32> {
     let mut rng = rand::rng();
@@ -64,11 +105,37 @@ struct FrameData {
     spectrum: Vec<f32>,
 }
 
+fn convert_disp(power: &mut [f32]) {
+    let max = power
+        .iter()
+        .copied()
+        .fold(0.0_f32, f32::max);
+
+    if max > 0.0 {
+        let inv_max = 1.0 / max;
+        for v in power {
+            *v *= inv_max;
+        }
+    }
+}
+
 fn send_frame(app: &tauri::AppHandle) {
+    let mut planner = FftPlanner::<f32>::new();
+    let fft = planner.plan_fft_forward(FRAME_SIZE);
+    // let mut wave = generate_gaussian_pulse_train(50, 200, 100.);
+    // add_noise(wave.as_mut_slice(), 0.5);
+
+    // let pulse = generate_pulse_signal(200.0, 1000., FRAME_SIZE);
+    let mut pulse_iq = generate_pulse(200., 1000., FRAME_SIZE, 500, 1000, 1000.);
+    let mut power: Vec<f32> = pulse_iq.iter().map(|e| e.norm_sqr()).collect();
+    convert_disp(&mut power);
+    fft.process(&mut pulse_iq);
+    let mut spectrum: Vec<f32> = pulse_iq.iter().map(|e| 10.*e.norm_sqr().log10()).collect();
+    // convert_disp(&mut spectrum);
     let frame = FrameData {
         frame_number: 0,
-        samples: generate_wave(),
-        spectrum: generate_spectrum(),
+        samples: power.to_vec(),
+        spectrum: spectrum,
     };
     app.emit("wave-frame", frame).unwrap();
 }

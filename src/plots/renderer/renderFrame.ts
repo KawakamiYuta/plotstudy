@@ -5,9 +5,9 @@ import { drawSpectrum } from "./drawSpectrum";
 import { drawAxisLabels, drawFftAxisLabels } from "./drawAxis";
 import { MARGIN } from "./layout";
 
-export type Viewport = {
-    zoom: number;
-    offset: number;
+type Viewport = {
+  pxPerSample: number   // 1サンプル = 何pxか
+  offset: number        // 表示開始サンプル番号
 }
 
 export function renderFrame(
@@ -37,8 +37,10 @@ export function renderFrame(
     ctx.save()
     ctx.translate(MARGIN.left, MARGIN.top)
 
+    const linMax = 1;
+    const dbMax = 200;
     drawGrid(ctx, innerWidth, waveHeight)
-    drawWave(ctx, frame.samples, innerWidth, waveHeight, viewport.zoom, viewport.offset)
+    drawWave(ctx, frame.samples, innerWidth, waveHeight, viewport.pxPerSample, viewport.offset, linMax)
 
     drawFftGrid(ctx, innerWidth, waveHeight, marginHeight, fftHeight)
     drawSpectrum(
@@ -46,11 +48,12 @@ export function renderFrame(
         frame.spectrum,
         waveHeight + marginHeight,
         fftHeight,
-        innerWidth
+        innerWidth,
+        dbMax,
     )
 
     ctx.restore()
 
-    drawAxisLabels(ctx, frame.samples.length, innerWidth, waveHeight)
-    drawFftAxisLabels(ctx, frame.spectrum.length, innerWidth, waveHeight, marginHeight, fftHeight)
+    drawAxisLabels(ctx, frame.samples.length, innerWidth, waveHeight, linMax)
+    drawFftAxisLabels(ctx, frame.spectrum.length, innerWidth, waveHeight, marginHeight, fftHeight, dbMax)
 }

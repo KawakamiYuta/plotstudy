@@ -1,33 +1,33 @@
 export function drawWave(
-    ctx: CanvasRenderingContext2D,
-    samples: number[],
-    INNER_WIDTH: number,
-    WAVE_HEIGHT: number,
-    zoom: number,
-    offset: number
+  ctx: CanvasRenderingContext2D,
+  samples: number[],
+  innerWidth: number,
+  waveHeight: number,
+  pxPerSample: number,
+  offset: number,
+  maxValue: number,
 ) {
-    if (samples.length === 0) return;
+  if (samples.length === 0) return
 
-    const MAX_VALUE = 256;
+  ctx.beginPath()
 
-    const visibleCount = Math.floor(samples.length / zoom);
-    const start = Math.floor(offset);
-    const end = Math.min(start + visibleCount, samples.length);
+  const startIndex = Math.floor(offset)
+  const endIndex = Math.min(
+    samples.length,
+    Math.ceil(offset + innerWidth / pxPerSample)
+  )
 
-    const step = (end - start) / INNER_WIDTH;
+  console.log(`Drawing wave: startIndex=${startIndex}, endIndex=${endIndex}, offset=${offset.toFixed(2)}`)
+  for (let i = startIndex; i < endIndex; i++) {
+    const x = (i - offset) * pxPerSample
+    const value = samples[i]
+    const y = waveHeight * (1 - value / maxValue)
 
-    ctx.beginPath();
+    if (i === startIndex) ctx.moveTo(x, y)
+    else ctx.lineTo(x, y)
+  }
 
-    for (let x = 0; x < INNER_WIDTH; x++) {
-        const sampleIndex = Math.floor(start + x * step);
-        const value = samples[sampleIndex] ?? 0;
-        const y = WAVE_HEIGHT * (1 - value / MAX_VALUE);
-
-        if (x === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-    }
-
-    ctx.strokeStyle = "#4e79a7";
-    ctx.lineWidth = 1;
-    ctx.stroke();
+  ctx.strokeStyle = "#4e79a7"
+  ctx.lineWidth = 1
+  ctx.stroke()
 }
