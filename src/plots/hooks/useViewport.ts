@@ -2,7 +2,7 @@ import { useState } from "react"
 import type { WheelEvent as ReactWheelEvent } from "react"
 
 export function useViewport() {
-  const [pxPerSample, setPxPerSample] = useState(1)
+  const [pxPerUnit, setpxPerUnit] = useState(1)
   const [offset, setOffset] = useState(0)
 
 const onWheel = (e: ReactWheelEvent<HTMLCanvasElement>, totalSamples: number, canvasWidth: number) => {
@@ -13,7 +13,7 @@ const onWheel = (e: ReactWheelEvent<HTMLCanvasElement>, totalSamples: number, ca
 
   const scale = e.deltaY < 0 ? 1.1 : 0.9;
 
-  setPxPerSample(prev => {
+  setpxPerUnit(prev => {
     let newPx = Math.max(prev * scale, 0.1);
 
     // 🔹 画面に見えるサンプル数
@@ -42,11 +42,11 @@ const onWheel = (e: ReactWheelEvent<HTMLCanvasElement>, totalSamples: number, ca
 
 
 const onDrag = (dx: number) => {
-  setOffset(prev => prev - dx / pxPerSample)
+  setOffset(prev => prev - dx / pxPerUnit)
 }
 
   return {
-    pxPerSample,
+    pxPerUnit,
     offset,
     onWheel,
     onDrag

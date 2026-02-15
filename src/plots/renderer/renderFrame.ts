@@ -6,15 +6,16 @@ import { drawAxisLabels, drawFftAxisLabels } from "./drawAxis";
 import { MARGIN } from "./layout";
 
 type Viewport = {
-  pxPerSample: number   // 1サンプル = 何pxか
-  offset: number        // 表示開始サンプル番号
+  pxPerUnit: number
+  offset: number
 }
 
 export function renderFrame(
     ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement,
     frame: FrameData,
-    viewport: Viewport) {
+    viewport: Viewport,
+    fftViewPort: Viewport) {
     // const canvas = canvasRef.current!
     // const ctx = ctxRef.current!
     if (!ctx) return
@@ -39,18 +40,15 @@ export function renderFrame(
 
     const linMax = 1;
     const dbMax = 200;
+    drawWave(ctx, frame.samples, innerWidth, waveHeight, viewport.pxPerUnit, viewport.offset, linMax)
     drawGrid(ctx, innerWidth, waveHeight)
-    drawWave(ctx, frame.samples, innerWidth, waveHeight, viewport.pxPerSample, viewport.offset, linMax)
+
+    drawSpectrum(ctx, frame.spectrum, waveHeight + marginHeight,
+         fftHeight, innerWidth, 
+         dbMax,
+         fftViewPort.pxPerUnit, fftViewPort.offset)
 
     drawFftGrid(ctx, innerWidth, waveHeight, marginHeight, fftHeight)
-    drawSpectrum(
-        ctx,
-        frame.spectrum,
-        waveHeight + marginHeight,
-        fftHeight,
-        innerWidth,
-        dbMax,
-    )
 
     ctx.restore()
 
