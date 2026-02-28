@@ -9,23 +9,35 @@ export function drawGrid(
     ctx.lineWidth = 1;
     ctx.beginPath();
 
-    // horizontal lines (0–1)
-    for (let i = 0; i <= 5; i++) {
-        const y = (WAVE_HEIGHT / 5) * i;
-        ctx.moveTo(0, y);
-        ctx.lineTo(INNER_WIDTH, y);
+    // horizontal lines spaced like Y-axis ticks (multiples of 5)
+    {
+        const approxLabelHeight = 14;
+        const maxTicks = Math.floor(WAVE_HEIGHT / approxLabelHeight);
+        let tickCount = Math.max(2, Math.min(10, maxTicks));
+        const rawStep = 1 / tickCount; // normalized value
+        const stepVal = Math.max(5, Math.ceil((rawStep * maxTicks) / 5) * 5);
+        tickCount = Math.floor(maxTicks / (stepVal / 1));
+        for (let i = 0; i <= tickCount; i++) {
+            const y = (WAVE_HEIGHT / tickCount) * i;
+            ctx.moveTo(0, y);
+            ctx.lineTo(INNER_WIDTH, y);
+        }
     }
 
-    // vertical grid lines aligned to sample indices
-    const visibleSamples = Math.ceil(INNER_WIDTH / pxPerSample);
-    const startIndex = Math.floor(offset);
-
-    for (let i = 0; i <= 10; i++) {
-        const ratio = i / 10;
-        const idx = Math.floor(startIndex + visibleSamples * ratio);
-        const x = (idx - offset) * pxPerSample;
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, WAVE_HEIGHT);
+    // vertical grid lines – same samples multiples of 5 as X-axis labels
+    {
+        const visibleSamples = Math.ceil(INNER_WIDTH / pxPerSample);
+        const startIndex = Math.floor(offset);
+        const targetPxPerLabel = 60;
+        const labelCount = Math.max(2, Math.floor(INNER_WIDTH / targetPxPerLabel));
+        const rawStep = visibleSamples / labelCount;
+        const step = Math.max(5, Math.ceil(rawStep / 5) * 5);
+        let first = Math.ceil(startIndex / 5) * 5;
+        for (let idx = first; idx <= startIndex + visibleSamples; idx += step) {
+            const x = (idx - offset) * pxPerSample;
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, WAVE_HEIGHT);
+        }
     }
 
     ctx.stroke();
@@ -48,22 +60,35 @@ export function drawFftGrid(
     ctx.lineWidth = 1;
     ctx.beginPath();
 
-    // horizontal lines (0–1)
-    for (let i = 0; i <= 5; i++) {
-        const y = WAVE_HEIGHT + MARGIN_HEIGHT + (FFT_HEIGHT / 5) * i;
-        ctx.moveTo(0, y);
-        ctx.lineTo(INNER_WIDTH, y);
+    // horizontal lines spaced like FFT Y-axis ticks (multiples of 5)
+    {
+        const approxLabelHeight = 14;
+        const availableHeight = FFT_HEIGHT;
+        const maxTicks = Math.floor(availableHeight / approxLabelHeight);
+        let tickCount = Math.max(2, Math.min(12, maxTicks));
+        const rawStep = 1 / tickCount;
+        const stepVal = Math.max(5, Math.ceil((rawStep * maxTicks) / 5) * 5);
+        tickCount = Math.floor(maxTicks / (stepVal / 1));
+        for (let i = 0; i <= tickCount; i++) {
+            const y = WAVE_HEIGHT + MARGIN_HEIGHT + (FFT_HEIGHT / tickCount) * i;
+            ctx.moveTo(0, y);
+            ctx.lineTo(INNER_WIDTH, y);
+        }
     }
-
-    // vertical lines – align with visible bins
-    const visibleBins = Math.ceil(INNER_WIDTH / pxPerBin);
-    const startBin = Math.floor(offset);
-    for (let i = 0; i <= 10; i++) {
-        const ratio = i / 10;
-        const bin = Math.floor(startBin + visibleBins * ratio);
-        const x = (bin - offset) * pxPerBin;
-        ctx.moveTo(x, WAVE_HEIGHT);
-        ctx.lineTo(x, WAVE_HEIGHT + MARGIN_HEIGHT + FFT_HEIGHT);
+    // vertical lines – sync with FFT X-axis labels (multiples of 5)
+    {
+        const visibleBins = Math.ceil(INNER_WIDTH / pxPerBin);
+        const startBin = Math.floor(offset);
+        const targetPxPerLabel = 60;
+        const labelCount = Math.max(2, Math.floor(INNER_WIDTH / targetPxPerLabel));
+        const rawStep = visibleBins / labelCount;
+        const step = Math.max(5, Math.ceil(rawStep / 5) * 5);
+        let first = Math.ceil(startBin / 5) * 5;
+        for (let idx = first; idx <= startBin + visibleBins; idx += step) {
+            const x = (idx - offset) * pxPerBin;
+            ctx.moveTo(x, WAVE_HEIGHT);
+            ctx.lineTo(x, WAVE_HEIGHT + MARGIN_HEIGHT + FFT_HEIGHT);
+        }
     }
 
     ctx.stroke();

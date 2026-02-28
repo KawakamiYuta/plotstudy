@@ -15,17 +15,21 @@ export function drawAxisLabels(
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
-    // Y軸（0〜256）
-    for (let i = 0; i <= 4; i++) {
-        const value = maxValue - (maxValue / 4) * i;
-        const y =
-            MARGIN.top + (WAVE_HEIGHT / 4) * i;
-
-        ctx.fillText(
-            value.toFixed(0),
-            MARGIN.left - 10,
-            y
-        );
+    // Y軸（0〜maxValue）: ticks are multiples of 5, count limited by height
+    {
+        const approxLabelHeight = 14; // 12px font + padding
+        const maxTicks = Math.floor(WAVE_HEIGHT / approxLabelHeight);
+        let tickCount = Math.max(2, Math.min(10, maxTicks));
+        // determine step size rounded up to nearest multiple of 5
+        const rawStep = maxValue / tickCount;
+        const step = Math.max(5, Math.ceil(rawStep / 5) * 5);
+        // recalc tick count to fit whole multiples
+        tickCount = Math.floor(maxValue / step);
+        for (let i = 0; i <= tickCount; i++) {
+            const value = maxValue - step * i;
+            const y = MARGIN.top + (WAVE_HEIGHT / tickCount) * i;
+            ctx.fillText(value.toFixed(0), MARGIN.left - 10, y);
+        }
     }
 
     // X軸
@@ -35,21 +39,17 @@ export function drawAxisLabels(
     // determine visible range based on zoom/offset
     const visibleCount = Math.ceil(INNER_WIDTH / pxPerSample);
     const startIndex = Math.floor(offset);
-
-    for (let i = 0; i <= 10; i++) {
-        const ratio = i / 10;
-        const sampleIndex = Math.floor(
-            startIndex + visibleCount * ratio
-        );
-
-        const x =
-            MARGIN.left + (sampleIndex - offset) * pxPerSample;
-
-        ctx.fillText(
-            sampleIndex.toString(),
-            x,
-            MARGIN.top + WAVE_HEIGHT + 5
-        );
+    {
+        const targetPxPerLabel = 60; // aim for 60px between labels
+        const labelCount = Math.max(2, Math.floor(INNER_WIDTH / targetPxPerLabel));
+        // compute step in samples, round to multiple of 5
+        const rawStep = visibleCount / labelCount;
+        const step = Math.max(5, Math.ceil(rawStep / 5) * 5);
+        let first = Math.ceil(startIndex / 5) * 5;
+        for (let idx = first; idx <= startIndex + visibleCount; idx += step) {
+            const x = MARGIN.left + (idx - offset) * pxPerSample;
+            ctx.fillText(idx.toString(), x, MARGIN.top + WAVE_HEIGHT + 5);
+        }
     }
 }
 
@@ -71,11 +71,22 @@ export function drawFftAxisLabels(
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
-    // Y軸（dB 0〜MAX_DB）
-    for (let i = 0; i <= 10; i++) {
-        const value = maxValue - (maxValue / 10) * i;
-        const y = MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT + (FFT_HEIGHT / 10) * i;
-        ctx.fillText(value.toFixed(0), MARGIN.left - 10, y);
+    // Y軸（dB 0〜MAX_DB） dynamic tick count with multiples of 5
+    {
+        const approxLabelHeight = 14;
+        const availableHeight = FFT_HEIGHT;
+        const maxTicks = Math.floor(availableHeight / approxLabelHeight);
+        let tickCount = Math.max(2, Math.min(12, maxTicks));
+        const rawStep = maxValue / tickCount;
+        const step = Math.max(5, Math.ceil(rawStep / 5) * 5);
+        tickCount = Math.floor(maxValue / step);
+        for (let i = 0; i <= tickCount; i++) {
+            const value = maxValue - step * i;
+            const y =
+                MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT +
+                (FFT_HEIGHT / tickCount) * i;
+            ctx.fillText(value.toFixed(0), MARGIN.left - 10, y);
+        }
     }
 
     // X軸
@@ -83,12 +94,21 @@ export function drawFftAxisLabels(
     ctx.textBaseline = "top";
     const visibleBins = Math.ceil(INNER_WIDTH / pxPerBin);
     const startBin = Math.floor(offset);
-
-    for (let i = 0; i <= 10; i++) {
-        const ratio = i / 10;
-        const freqIndex = Math.floor(startBin + visibleBins * ratio);
-        const x = MARGIN.left + (freqIndex - offset) * pxPerBin;
-        ctx.fillText(freqIndex.toString(), x, MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT + FFT_HEIGHT + 5);
+    {
+        const targetPxPerLabel = 60;
+        const labelCount = Math.max(2, Math.floor(INNER_WIDTH / targetPxPerLabel));
+        const rawStep = visibleBins / labelCount;
+        const step = Math.max(5, Math.ceil(rawStep / 5) * 5);
+        let first = Math.ceil(startBin / 5) * 5;
+        for (let idx = first; idx <= startBin + visibleBins; idx += step) {
+            const x = MARGIN.left + (idx - offset) * pxPerBin;
+            ctx.fillText(
+                idx.toString(),
+                x,
+                MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT +
+                    FFT_HEIGHT + 5
+            );
+        }
     }
 }
 
