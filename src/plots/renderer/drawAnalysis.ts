@@ -9,8 +9,9 @@ export function drawAnalysis(
 ) {
   const leftMargin = 30;
   const bottomMargin = 20;
+  const topMargin = 10;
   const drawWidth = width - leftMargin;
-  const drawHeight = height - bottomMargin;
+  const drawHeight = height - bottomMargin - topMargin;
   const len = Math.max(endBin - startBin, 0);
   if (len <= 0) return;
 
