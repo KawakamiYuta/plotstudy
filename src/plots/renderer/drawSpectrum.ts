@@ -23,7 +23,9 @@ export function drawSpectrum(
   pxPerBin: number,
   offset: number,
   highlightStartBin: number | null = null,
-  highlightEndBin: number | null = null
+  highlightEndBin: number | null = null,
+  analysisMode: boolean = false,
+  threshold: number = 0
 ) {
   if (!spectrum.length) return;
 
@@ -75,7 +77,22 @@ export function drawSpectrum(
     const barHeight = height * normalized;
     const y = offsetY + height - barHeight;
 
-    // 少し隙間を入れるなら *0.9 とか
+    // analysis mode coloring
+    if (analysisMode) {
+      if (value >= threshold) {
+        ctx.fillStyle = "#ffeb3b"; // highlight high values
+      } else if (
+        highlightStartBin !== null &&
+        highlightEndBin !== null &&
+        i >= highlightStartBin &&
+        i < highlightEndBin
+      ) {
+        ctx.fillStyle = "#4fc3f7"; // highlight range
+      } else {
+        ctx.fillStyle = "white";
+      }
+    }
+
     const barWidth = pxPerBin * 0.9;
 
     ctx.fillRect(x, y, barWidth, barHeight);

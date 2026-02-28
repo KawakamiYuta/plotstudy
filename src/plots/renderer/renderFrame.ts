@@ -30,7 +30,9 @@ export function renderFrame(
     fftViewPort: Viewport,
     showWave: boolean = true,
     highlightStartBin: number | null = null,
-    highlightEndBin: number | null = null
+    highlightEndBin: number | null = null,
+    analysisMode: boolean = false,
+    threshold: number = 0
 ) {
     // ctx and canvas already checked by caller
     if (!ctx) return;
@@ -80,7 +82,9 @@ export function renderFrame(
         fftViewPort.pxPerUnit,
         fftViewPort.offset,
         highlightStartBin,
-        highlightEndBin
+        highlightEndBin,
+        analysisMode,
+        threshold
     );
 
     drawFftGrid(

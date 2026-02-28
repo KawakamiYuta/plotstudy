@@ -16,12 +16,18 @@ export default function App() {
   return (
     <div className="app">
       <div className="control">
-        <ControlPanel threshold={threshold} setThreshold={setThreshold} />
+        <ControlPanel
+          threshold={threshold}
+          setThreshold={setThreshold}
+        />
       </div>
 
       <div className="main">
         <div className="left">
-          <Spectrum highlightRange={{ start: 330, end: 500 }} threshold={threshold} />
+          <Spectrum
+            highlightRange={{ start: 330, end: 500 }}
+            threshold={threshold}
+          />
         </div>
 
         <div className="right">

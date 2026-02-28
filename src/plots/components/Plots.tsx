@@ -1,15 +1,16 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { useCanvas } from "../hooks/useCanvas";
 import { useViewport } from "../hooks/useViewport";
 import { FrameData, frameStore } from "../models/frameStore";
 import { renderFrame } from "../renderer/renderFrame";
 import { MARGIN } from "../renderer/layout";
-import AnalysisModal from "./AnalysisModal";
 
 /**
  * Props for the spectrum-only canvas.  Consumers may provide an optional
  * `highlightRange` to draw a semi-transparent overlay over a range of
- * frequency bins on the spectrum plot.
+ * frequency bins on the spectrum plot.  The component itself manages an
+ * "analysis mode" state that is entered by double-clicking the highlighted
+ * region and exited either by another double-click or by pressing ESC.
  */
 interface SpectrumOnlyProps {
   // optional bin range to highlight on spectrum
@@ -24,6 +25,10 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
   const fftViewPort = useViewport();
   const fftViewPortRef = useRef(fftViewPort);
   const latestFrame = useRef<FrameData | null>(null);
+  // track analysis mode locally rather than via props
+  const [analysisMode, setAnalysisMode] = React.useState(false);
+  // remember viewport before entering analysis so we can restore it
+  const prevViewportRef = useRef<{ offset: number; pxPerUnit: number } | null>(null);
 
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
@@ -33,7 +38,6 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
     fftViewPortRef.current = fftViewPort;
   }, [fftViewPort]);
 
-  const [analysisRange, setAnalysisRange] = useState<{start:number;end:number} | null>(null);
 
   const draw = useCallback(() => {
     if (!latestFrame.current || !ctxRef.current || !canvasRef.current) return;
@@ -50,9 +54,11 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
       v,
       false,
       highlightRange ? highlightRange.start : null,
-      highlightRange ? highlightRange.end : null
+      highlightRange ? highlightRange.end : null,
+      analysisMode,
+      threshold
     );
-  }, [highlightRange]);
+  }, [highlightRange, analysisMode, threshold]);
   useEffect(() => {
     const unsubscribe = frameStore.subscribe((frame) => {
       latestFrame.current = frame;
@@ -92,20 +98,28 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
       const v = fftViewPortRef.current;
       const bin = Math.floor(v.offset + x / v.pxPerUnit);
       if (bin >= highlightRange.start && bin < highlightRange.end) {
-        // compute padded range to zoom to
-        const width = canvas.clientWidth;
-        const totalBins = latestFrame.current ? latestFrame.current.spectrum.length : 0;
-        const range = highlightRange.end - highlightRange.start;
-        const margin = Math.max(1, Math.floor(range * 0.1)); // 10% margin, at least 1 bin
-        const start = Math.max(0, highlightRange.start - margin);
-        const end = Math.min(totalBins, highlightRange.end + margin);
-
-        // always zoom to padded highlight range when double-clicked
-        fftViewPort.zoomToRange(start, end, width);
-        setAnalysisRange({ start, end });
+        if (!analysisMode) {
+          // entering analysis, remember current viewport and zoom to range
+          prevViewportRef.current = { offset: v.offset, pxPerUnit: v.pxPerUnit };
+          const width = canvas.clientWidth;
+          const totalBins = latestFrame.current ? latestFrame.current.spectrum.length : 0;
+          const range = highlightRange.end - highlightRange.start;
+          const margin = Math.max(1, Math.floor(range * 0.1));
+          const start = Math.max(0, highlightRange.start - margin);
+          const end = Math.min(totalBins, highlightRange.end + margin);
+          fftViewPort.zoomToRange(start, end, width);
+          setAnalysisMode(true);
+        } else {
+          // leaving analysis, restore previous viewport
+          setAnalysisMode(false);
+          if (prevViewportRef.current) {
+            fftViewPort.setViewport(
+              prevViewportRef.current.offset,
+              prevViewportRef.current.pxPerUnit
+            );
+          }
+        }
         draw();
-      } else {
-        // click outside highlighted area
       }
     };
 
@@ -120,15 +134,8 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
       canvas.removeEventListener("mouseup", up);
       canvas.removeEventListener("dblclick", dblclick);
     };
-  }, [highlightRange, draw]);
+  }, [highlightRange, draw, analysisMode]);
 
-  const handleCloseModal = () => setAnalysisRange(null);
-
-  useEffect(() => {
-    if (analysisRange) {
-      draw();
-    }
-  }, [analysisRange]);
 
   const onWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !latestFrame.current) return;
@@ -136,6 +143,24 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
     const canvasWidth = canvasRef.current.clientWidth;
     fftViewPort.onWheel(e, latestFrame.current.spectrum.length, canvasWidth);
   };
+
+  // escape key cancels analysis mode and restores viewport
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && analysisMode) {
+        setAnalysisMode(false);
+        if (prevViewportRef.current) {
+          fftViewPort.setViewport(
+            prevViewportRef.current.offset,
+            prevViewportRef.current.pxPerUnit
+          );
+        }
+        draw();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [analysisMode, draw, fftViewPort]);
 
   useEffect(draw, [fftViewPort.pxPerUnit, fftViewPort.offset]);
 
@@ -146,14 +171,6 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
         style={{ width: "100%", height: "100%" }}
         onWheel={onWheel}
       />
-      {analysisRange && latestFrame.current && (
-        <AnalysisModal
-          range={analysisRange}
-          spectrum={latestFrame.current.spectrum}
-          threshold={threshold}
-          onClose={handleCloseModal}
-        />
-      )}
     </>
   );
 }
