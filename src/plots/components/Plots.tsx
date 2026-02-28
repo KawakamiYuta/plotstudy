@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { useCanvas } from "../hooks/useCanvas";
 import { useViewport } from "../hooks/useViewport";
 import { FrameData, frameStore } from "../models/frameStore";
 import { renderFrame } from "../renderer/renderFrame";
 import { MARGIN } from "../renderer/layout";
+import AnalysisModal from "./AnalysisModal";
 
 /**
  * Props for the spectrum-only canvas.  Consumers may provide an optional
@@ -13,9 +14,11 @@ import { MARGIN } from "../renderer/layout";
 interface SpectrumOnlyProps {
   // optional bin range to highlight on spectrum
   highlightRange?: { start: number; end: number };
+  // current threshold value for highlighting special bins
+  threshold: number;
 }
 
-export default function SpectrumOnly({ highlightRange }: SpectrumOnlyProps) {
+export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnlyProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useCanvas(canvasRef);
   const fftViewPort = useViewport();
@@ -29,6 +32,8 @@ export default function SpectrumOnly({ highlightRange }: SpectrumOnlyProps) {
   useEffect(() => {
     fftViewPortRef.current = fftViewPort;
   }, [fftViewPort]);
+
+  const [analysisRange, setAnalysisRange] = useState<{start:number;end:number} | null>(null);
 
   const draw = useCallback(() => {
     if (!latestFrame.current || !ctxRef.current || !canvasRef.current) return;
@@ -97,6 +102,7 @@ export default function SpectrumOnly({ highlightRange }: SpectrumOnlyProps) {
 
         // always zoom to padded highlight range when double-clicked
         fftViewPort.zoomToRange(start, end, width);
+        setAnalysisRange({ start, end });
         draw();
       } else {
         // click outside highlighted area
@@ -116,6 +122,14 @@ export default function SpectrumOnly({ highlightRange }: SpectrumOnlyProps) {
     };
   }, [highlightRange, draw]);
 
+  const handleCloseModal = () => setAnalysisRange(null);
+
+  useEffect(() => {
+    if (analysisRange) {
+      draw();
+    }
+  }, [analysisRange]);
+
   const onWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !latestFrame.current) return;
     // always adjust FFT viewport since waveform is hidden
@@ -126,10 +140,20 @@ export default function SpectrumOnly({ highlightRange }: SpectrumOnlyProps) {
   useEffect(draw, [fftViewPort.pxPerUnit, fftViewPort.offset]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: "100%", height: "100%" }}
-      onWheel={onWheel}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        style={{ width: "100%", height: "100%" }}
+        onWheel={onWheel}
+      />
+      {analysisRange && latestFrame.current && (
+        <AnalysisModal
+          range={analysisRange}
+          spectrum={latestFrame.current.spectrum}
+          threshold={threshold}
+          onClose={handleCloseModal}
+        />
+      )}
+    </>
   );
 }

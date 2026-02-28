@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 // import WaveformBarChart from "./WaveformBarChartCanvas";
 import Spectrum from "./plots/components/Plots";
 import ControlPanel from "./controls/components/ControlPanel";
@@ -11,16 +11,17 @@ const data = Array.from({ length: 64 }, (_, i) =>
 );
 
 export default function App() {
+  const [threshold, setThreshold] = useState(20);
+
   return (
     <div className="app">
       <div className="control">
-        {/* <ControlPanel /> */}
-          <ControlPanel />
+        <ControlPanel threshold={threshold} setThreshold={setThreshold} />
       </div>
 
       <div className="main">
         <div className="left">
-          <Spectrum highlightRange={{ start: 10, end: 20 }} />
+          <Spectrum highlightRange={{ start: 10, end: 20 }} threshold={threshold} />
         </div>
 
         <div className="right">
@@ -28,5 +29,5 @@ export default function App() {
         </div>
       </div>
     </div>
-  )
+  );
 }

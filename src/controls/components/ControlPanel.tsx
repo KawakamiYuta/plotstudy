@@ -2,9 +2,13 @@ import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "../styles/ControlPanel.css";
 
-export default function ControlPanel() {
+interface ControlPanelProps {
+  threshold: number;
+  setThreshold: (v: number) => void;
+}
+
+export default function ControlPanel({ threshold, setThreshold }: ControlPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [threshold, setThreshold] = useState(20);
 
   const handleNextFrame = async () => {
     try {
