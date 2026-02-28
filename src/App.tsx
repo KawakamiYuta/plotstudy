@@ -21,7 +21,7 @@ export default function App() {
 
       <div className="main">
         <div className="left">
-          <Spectrum highlightRange={{ start: 10, end: 20 }} threshold={threshold} />
+          <Spectrum highlightRange={{ start: 330, end: 500 }} threshold={threshold} />
         </div>
 
         <div className="right">
