@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, RefObject } from "react";
 
 export function useCanvas(canvasRef: RefObject<HTMLCanvasElement>) {
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)

@@ -6,7 +6,7 @@ export function useViewport() {
   const [offset, setOffset] = useState(0)
 
 const onWheel = (e: ReactWheelEvent<HTMLCanvasElement>, totalSamples: number, canvasWidth: number) => {
-  e.preventDefault();
+  // e.preventDefault();
 
   const rect = e.currentTarget.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
@@ -23,18 +23,18 @@ const onWheel = (e: ReactWheelEvent<HTMLCanvasElement>, totalSamples: number, ca
     const minPx = canvasWidth / totalSamples;
     if (newPx < minPx) newPx = minPx;
 
-    // 🔹 offset 補正（マウス中心固定）
-    setOffset(prevOffset => {
-      const sampleIndex = prevOffset + mouseX / prev;
-      let newOffset = sampleIndex - mouseX / newPx;
+    // // 🔹 offset 補正（マウス中心固定）
+    // setOffset(prevOffset => {
+    //   const sampleIndex = prevOffset + mouseX / prev;
+    //   let newOffset = sampleIndex - mouseX / newPx;
 
-      // 🔹 左右端で clamp
-      const maxOffset = Math.max(totalSamples - visibleSamples, 0);
-      if (newOffset < 0) newOffset = 0;
-      if (newOffset > maxOffset) newOffset = maxOffset;
+    //   // 🔹 左右端で clamp
+    //   const maxOffset = Math.max(totalSamples - visibleSamples, 0);
+    //   if (newOffset < 0) newOffset = 0;
+    //   if (newOffset > maxOffset) newOffset = maxOffset;
 
-      return newOffset;
-    });
+    //   return newOffset;
+    // });
 
     return newPx;
   });

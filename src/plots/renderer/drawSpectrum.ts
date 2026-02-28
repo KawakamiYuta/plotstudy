@@ -28,7 +28,7 @@ export function drawSpectrum(
   gradient.addColorStop(0.5, "#f28e2b");
   gradient.addColorStop(1.0, "#1f77b4");
 
-  ctx.beginPath();
+  ctx.fillStyle = gradient;
 
   for (let i = startBin; i < endBin; i++) {
     const value = spectrum[i];
@@ -39,30 +39,14 @@ export function drawSpectrum(
     );
 
     const x = (i - offset) * pxPerBin;
-    const y = offsetY + height * (1 - normalized);
+    const barHeight = height * normalized;
+    const y = offsetY + height - barHeight;
 
-    if (i === startBin) {
-      ctx.moveTo(x, offsetY + height);
-      ctx.lineTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
+    // 少し隙間を入れるなら *0.9 とか
+    const barWidth = pxPerBin * 0.9;
+
+    ctx.fillRect(x, y, barWidth, barHeight);
   }
-
-  // 右下へ閉じる
-  ctx.lineTo(
-    (endBin - offset) * pxPerBin,
-    offsetY + height
-  );
-
-  ctx.closePath();
-
-  ctx.fillStyle = gradient;
-  ctx.fill();
-
-  ctx.strokeStyle = gradient;
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
 
   ctx.restore();
 }
