@@ -51,11 +51,32 @@ export function useViewport() {
     else if (offset > maxOffset) setOffset(maxOffset);
   };
 
+  /**
+   * Zooms the viewport such that [start..end) bins fill the given canvas width.
+   * Adjusts pxPerUnit and offset accordingly.
+   */
+  const zoomToRange = (start: number, end: number, canvasWidth: number) => {
+    const range = Math.max(end - start, 1);
+    const newPx = canvasWidth / range;
+    setpxPerUnit(prev => {
+      const minPx = canvasWidth / 100000; // prevent absurd values
+      return Math.max(newPx, minPx);
+    });
+    setOffset(start);
+  };
+
+  const setViewport = (newOffset: number, newPx: number) => {
+    setOffset(newOffset);
+    setpxPerUnit(newPx);
+  };
+
   return {
     pxPerUnit,
     offset,
     onWheel,
     onDrag,
-    clampOffset
+    clampOffset,
+    zoomToRange,
+    setViewport
   }
 }

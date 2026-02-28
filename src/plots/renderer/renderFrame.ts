@@ -10,13 +10,28 @@ type Viewport = {
   offset: number
 }
 
+/**
+ * Composite frame renderer that draws waveform, spectrum, grids, and axes.
+ *
+ * @param ctx canvas context
+ * @param canvas the canvas element for sizing information
+ * @param frame current frame data
+ * @param viewport view parameters for waveform (ignored if showWave=false)
+ * @param fftViewPort view parameters for spectrum
+ * @param showWave whether to render waveform portion
+ * @param highlightStartBin optional start of spectrum highlight range
+ * @param highlightEndBin optional end of spectrum highlight range
+ */
 export function renderFrame(
     ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement,
     frame: FrameData,
     viewport: Viewport,
     fftViewPort: Viewport,
-    showWave: boolean = true) {
+    showWave: boolean = true,
+    highlightStartBin: number | null = null,
+    highlightEndBin: number | null = null
+) {
     // ctx and canvas already checked by caller
     if (!ctx) return;
 
@@ -63,7 +78,9 @@ export function renderFrame(
         innerWidth,
         dbMax,
         fftViewPort.pxPerUnit,
-        fftViewPort.offset
+        fftViewPort.offset,
+        highlightStartBin,
+        highlightEndBin
     );
 
     drawFftGrid(

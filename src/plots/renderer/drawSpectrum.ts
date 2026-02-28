@@ -1,3 +1,18 @@
+/**
+ * Draws the FFT spectrum onto the canvas.  Optionally highlights a bin range
+ * with a semi‑transparent overlay so the user can visually inspect a region.
+ *
+ * @param ctx Canvas rendering context
+ * @param spectrum array of bin magnitudes
+ * @param offsetY vertical offset where spectrum begins
+ * @param height height of the spectrum area
+ * @param innerWidth width available for drawing
+ * @param maxValue value used to normalize bar heights
+ * @param pxPerBin horizontal scale (pixels per bin)
+ * @param offset horizontal offset in bins (for scrolling/zooming)
+ * @param highlightStartBin optional first bin of highlighted range (inclusive)
+ * @param highlightEndBin optional last bin of highlighted range (exclusive)
+ */
 export function drawSpectrum(
   ctx: CanvasRenderingContext2D,
   spectrum: number[],
@@ -6,7 +21,9 @@ export function drawSpectrum(
   innerWidth: number,
   maxValue: number,
   pxPerBin: number,
-  offset: number
+  offset: number,
+  highlightStartBin: number | null = null,
+  highlightEndBin: number | null = null
 ) {
   if (!spectrum.length) return;
 
@@ -17,6 +34,22 @@ export function drawSpectrum(
     spectrum.length,
     Math.ceil(offset + innerWidth / pxPerBin)
   );
+
+  // draw overlay if a valid range is provided
+  if (
+    highlightStartBin !== null &&
+    highlightEndBin !== null &&
+    highlightEndBin > highlightStartBin
+  ) {
+    const h0 = Math.max(highlightStartBin, startBin);
+    const h1 = Math.min(highlightEndBin, endBin);
+    if (h1 > h0) {
+      const x0 = (h0 - offset) * pxPerBin;
+      const x1 = (h1 - offset) * pxPerBin;
+      ctx.fillStyle = "rgba(0,255,0,0.1)"; // semi-transparent yellow
+      ctx.fillRect(x0, offsetY, x1 - x0, height);
+    }
+  }
 
   const gradient = ctx.createLinearGradient(
     0,

@@ -3,8 +3,19 @@ import { useCanvas } from "../hooks/useCanvas";
 import { useViewport } from "../hooks/useViewport";
 import { FrameData, frameStore } from "../models/frameStore";
 import { renderFrame } from "../renderer/renderFrame";
+import { MARGIN } from "../renderer/layout";
 
-export default function SpectrumOnly() {
+/**
+ * Props for the spectrum-only canvas.  Consumers may provide an optional
+ * `highlightRange` to draw a semi-transparent overlay over a range of
+ * frequency bins on the spectrum plot.
+ */
+interface SpectrumOnlyProps {
+  // optional bin range to highlight on spectrum
+  highlightRange?: { start: number; end: number };
+}
+
+export default function SpectrumOnly({ highlightRange }: SpectrumOnlyProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useCanvas(canvasRef);
   const fftViewPort = useViewport();
@@ -32,10 +43,11 @@ export default function SpectrumOnly() {
       latestFrame.current,
       v,
       v,
-      false
+      false,
+      highlightRange ? highlightRange.start : null,
+      highlightRange ? highlightRange.end : null
     );
-  }, []);
-
+  }, [highlightRange]);
   useEffect(() => {
     const unsubscribe = frameStore.subscribe((frame) => {
       latestFrame.current = frame;
@@ -43,6 +55,8 @@ export default function SpectrumOnly() {
     });
     return unsubscribe;
   }, [draw]);
+
+  // we don't need to remember previous viewport anymore; always zoom on dblclick
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -64,16 +78,43 @@ export default function SpectrumOnly() {
       isDraggingRef.current = false;
     };
 
+    const dblclick = (e: MouseEvent) => {
+      if (!highlightRange || !canvasRef.current) return;
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const x = (e.clientX - rect.left) * scaleX - MARGIN.left;
+      const v = fftViewPortRef.current;
+      const bin = Math.floor(v.offset + x / v.pxPerUnit);
+      if (bin >= highlightRange.start && bin < highlightRange.end) {
+        // compute padded range to zoom to
+        const width = canvas.clientWidth;
+        const totalBins = latestFrame.current ? latestFrame.current.spectrum.length : 0;
+        const range = highlightRange.end - highlightRange.start;
+        const margin = Math.max(1, Math.floor(range * 0.1)); // 10% margin, at least 1 bin
+        const start = Math.max(0, highlightRange.start - margin);
+        const end = Math.min(totalBins, highlightRange.end + margin);
+
+        // always zoom to padded highlight range when double-clicked
+        fftViewPort.zoomToRange(start, end, width);
+        draw();
+      } else {
+        // click outside highlighted area
+      }
+    };
+
     canvas.addEventListener("mousedown", down);
     canvas.addEventListener("mousemove", move);
     canvas.addEventListener("mouseup", up);
+    canvas.addEventListener("dblclick", dblclick);
 
     return () => {
       canvas.removeEventListener("mousedown", down);
       canvas.removeEventListener("mousemove", move);
       canvas.removeEventListener("mouseup", up);
+      canvas.removeEventListener("dblclick", dblclick);
     };
-  }, []);
+  }, [highlightRange, draw]);
 
   const onWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !latestFrame.current) return;

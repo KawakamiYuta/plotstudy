@@ -20,7 +20,7 @@ export default function App() {
 
       <div className="main">
         <div className="left">
-          <Spectrum />
+          <Spectrum highlightRange={{ start: 10, end: 20 }} />
         </div>
 
         <div className="right">
