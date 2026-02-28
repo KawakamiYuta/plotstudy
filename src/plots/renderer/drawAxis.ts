@@ -5,7 +5,9 @@ export function drawAxisLabels(
     sampleCount: number,
     INNER_WIDTH: number,
     WAVE_HEIGHT: number,
-    maxValue: number
+    maxValue: number,
+    pxPerSample: number = 1,
+    offset: number = 0
 ) {
     ctx.fillStyle = "white";
     ctx.font = "12px monospace";
@@ -30,14 +32,18 @@ export function drawAxisLabels(
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 
+    // determine visible range based on zoom/offset
+    const visibleCount = Math.ceil(INNER_WIDTH / pxPerSample);
+    const startIndex = Math.floor(offset);
+
     for (let i = 0; i <= 10; i++) {
         const ratio = i / 10;
         const sampleIndex = Math.floor(
-            sampleCount * ratio
+            startIndex + visibleCount * ratio
         );
 
         const x =
-            MARGIN.left + INNER_WIDTH * ratio;
+            MARGIN.left + (sampleIndex - offset) * pxPerSample;
 
         ctx.fillText(
             sampleIndex.toString(),
@@ -48,13 +54,17 @@ export function drawAxisLabels(
 }
 
 // FFTエリア用軸ラベル描画
-export function drawFftAxisLabels(ctx: CanvasRenderingContext2D, 
-    spectrumLength: number, 
-    INNER_WIDTH: number, 
-    WAVE_HEIGHT: number, 
-    MARGIN_HEIGHT: number, 
+export function drawFftAxisLabels(
+    ctx: CanvasRenderingContext2D,
+    spectrumLength: number,
+    INNER_WIDTH: number,
+    WAVE_HEIGHT: number,
+    MARGIN_HEIGHT: number,
     FFT_HEIGHT: number,
-maxValue: number) {
+    maxValue: number,
+    pxPerBin: number = 1,
+    offset: number = 0
+) {
     ctx.fillStyle = "white";
     ctx.font = "12px monospace";
 
@@ -71,10 +81,13 @@ maxValue: number) {
     // X軸
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
+    const visibleBins = Math.ceil(INNER_WIDTH / pxPerBin);
+    const startBin = Math.floor(offset);
+
     for (let i = 0; i <= 10; i++) {
         const ratio = i / 10;
-        const freqIndex = Math.floor(spectrumLength * ratio);
-        const x = MARGIN.left + INNER_WIDTH * ratio;
+        const freqIndex = Math.floor(startBin + visibleBins * ratio);
+        const x = MARGIN.left + (freqIndex - offset) * pxPerBin;
         ctx.fillText(freqIndex.toString(), x, MARGIN.top + WAVE_HEIGHT + MARGIN_HEIGHT + FFT_HEIGHT + 5);
     }
 }

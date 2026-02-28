@@ -52,7 +52,7 @@ export function renderFrame(
             viewport.offset,
             linMax
         );
-        drawGrid(ctx, innerWidth, waveHeight);
+        drawGrid(ctx, innerWidth, waveHeight, viewport.pxPerUnit, viewport.offset);
     }
 
     drawSpectrum(
@@ -66,7 +66,15 @@ export function renderFrame(
         fftViewPort.offset
     );
 
-    drawFftGrid(ctx, innerWidth, waveHeight, marginHeight, fftHeight);
+    drawFftGrid(
+        ctx,
+        innerWidth,
+        waveHeight,
+        marginHeight,
+        fftHeight,
+        fftViewPort.pxPerUnit,
+        fftViewPort.offset
+    );
 
     ctx.restore();
 
@@ -76,7 +84,9 @@ export function renderFrame(
             frame.samples.length,
             innerWidth,
             waveHeight,
-            linMax
+            linMax,
+            viewport.pxPerUnit,
+            viewport.offset
         );
     }
     drawFftAxisLabels(
@@ -86,6 +96,8 @@ export function renderFrame(
         waveHeight,
         marginHeight,
         fftHeight,
-        dbMax
+        dbMax,
+        fftViewPort.pxPerUnit,
+        fftViewPort.offset
     );
 }
