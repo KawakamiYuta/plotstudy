@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { useCanvas } from "../hooks/useCanvas";
 import { useViewport } from "../hooks/useViewport";
 import { FrameData, frameStore } from "../models/frameStore";
@@ -8,38 +8,47 @@ export default function SpectrumOnly() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useCanvas(canvasRef);
   const fftViewPort = useViewport();
+  const fftViewPortRef = useRef(fftViewPort);
   const latestFrame = useRef<FrameData | null>(null);
 
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
+
+  // keep ref synced so that subscription callback always sees the latest state
+  useEffect(() => {
+    fftViewPortRef.current = fftViewPort;
+  }, [fftViewPort]);
+
+  const draw = useCallback(() => {
+    if (!latestFrame.current || !ctxRef.current || !canvasRef.current) return;
+
+    const v = fftViewPortRef.current;
+    const canvasWidth = canvasRef.current.clientWidth;
+    v.clampOffset(latestFrame.current.spectrum.length, canvasWidth);
+
+    renderFrame(
+      ctxRef.current,
+      canvasRef.current,
+      latestFrame.current,
+      v,
+      v,
+      false
+    );
+  }, []);
 
   useEffect(() => {
     const unsubscribe = frameStore.subscribe((frame) => {
       latestFrame.current = frame;
       draw();
     });
-    return () => unsubscribe();
-  }, []);
-
-  const draw = () => {
-    if (!latestFrame.current || !ctxRef.current || !canvasRef.current) return;
-
-    renderFrame(
-      ctxRef.current,
-      canvasRef.current,
-      latestFrame.current,
-      fftViewPort,            // viewport argument is ignored when showWave=false
-      fftViewPort,
-      false                   // only draw spectrum
-    );
-  };
+    return unsubscribe;
+  }, [draw]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const down = (e: MouseEvent) => {
-      console.log("down", e.clientX);
       isDraggingRef.current = true;
       lastXRef.current = e.clientX;
     };
@@ -47,15 +56,11 @@ export default function SpectrumOnly() {
     const move = (e: MouseEvent) => {
       if (!isDraggingRef.current) return;
       const dx = e.clientX - lastXRef.current;
-       console.log("move", dx);
-
       fftViewPort.onDrag(dx);
       lastXRef.current = e.clientX;
-
     };
 
     const up = (_e: MouseEvent) => {
-      console.log("up", _e.clientX);
       isDraggingRef.current = false;
     };
 

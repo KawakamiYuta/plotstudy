@@ -1,54 +1,61 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { WheelEvent as ReactWheelEvent } from "react"
 
+// keep the last values globally so they survive unmount/mount
+let persistentPxPerUnit = 1
+let persistentOffset = 0
+
 export function useViewport() {
-  const [pxPerUnit, setpxPerUnit] = useState(1)
-  const [offset, setOffset] = useState(0)
+  const [pxPerUnit, setpxPerUnit] = useState(persistentPxPerUnit)
+  const [offset, setOffset] = useState(persistentOffset)
 
-const onWheel = (e: ReactWheelEvent<HTMLCanvasElement>, totalSamples: number, canvasWidth: number) => {
-  // e.preventDefault();
+  // synchronize globals whenever state changes
+  useEffect(() => {
+    persistentPxPerUnit = pxPerUnit
+  }, [pxPerUnit])
+  useEffect(() => {
+    persistentOffset = offset
+  }, [offset])
 
-  const rect = e.currentTarget.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
+  const onWheel = (e: ReactWheelEvent<HTMLCanvasElement>, totalSamples: number, canvasWidth: number) => {
+    // e.preventDefault(); // caller already calls if desired
 
-  const scale = e.deltaY < 0 ? 1.1 : 0.9;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
 
-  setpxPerUnit(prev => {
-    let newPx = Math.max(prev * scale, 0.1);
+    const scale = e.deltaY < 0 ? 1.1 : 0.9;
 
-    // 🔹 画面に見えるサンプル数
-    const visibleSamples = canvasWidth / newPx;
+    setpxPerUnit(prev => {
+      let newPx = Math.max(prev * scale, 0.1);
 
-    // 🔹 全サンプルを表示できる最小ズーム
-    const minPx = canvasWidth / totalSamples;
-    if (newPx < minPx) newPx = minPx;
+      // 🔹 画面に見えるサンプル数
+      const visibleSamples = canvasWidth / newPx;
 
-    // // 🔹 offset 補正（マウス中心固定）
-    // setOffset(prevOffset => {
-    //   const sampleIndex = prevOffset + mouseX / prev;
-    //   let newOffset = sampleIndex - mouseX / newPx;
+      // 🔹 全サンプルを表示できる最小ズーム
+      const minPx = canvasWidth / totalSamples;
+      if (newPx < minPx) newPx = minPx;
 
-    //   // 🔹 左右端で clamp
-    //   const maxOffset = Math.max(totalSamples - visibleSamples, 0);
-    //   if (newOffset < 0) newOffset = 0;
-    //   if (newOffset > maxOffset) newOffset = maxOffset;
+      return newPx;
+    });
+  };
 
-    //   return newOffset;
-    // });
+  const onDrag = (dx: number) => {
+    setOffset(prev => prev - dx / pxPerUnit)
+  }
 
-    return newPx;
-  });
-};
-
-
-const onDrag = (dx: number) => {
-  setOffset(prev => prev - dx / pxPerUnit)
-}
+  // useful helper to keep offset within valid range when the data length or canvas width changes
+  const clampOffset = (totalSamples: number, canvasWidth: number) => {
+    const visible = canvasWidth / pxPerUnit;
+    const maxOffset = Math.max(totalSamples - visible, 0);
+    if (offset < 0) setOffset(0);
+    else if (offset > maxOffset) setOffset(maxOffset);
+  };
 
   return {
     pxPerUnit,
     offset,
     onWheel,
-    onDrag
+    onDrag,
+    clampOffset
   }
 }
