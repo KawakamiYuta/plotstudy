@@ -25,6 +25,7 @@ export default function AnalysisModal({
 
     const width = canvas.width;
     const height = canvas.height;
+    // scale y-axis to displayed slice rather than global maxima
     drawAnalysis(
       ctx,
       spectrum,
@@ -42,8 +43,8 @@ export default function AnalysisModal({
         <h3>分析: bins {range.start}–{range.end}</h3>
         <canvas
           ref={canvasRef}
-          width={600}
-          height={200}
+          width={640}
+          height={640}
           style={{ width: "100%", height: "auto", background: "#000" }}
         />
         <div className="modal-buttons" style={{ marginTop: "12px" }}>
