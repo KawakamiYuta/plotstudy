@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { useCanvas } from "../hooks/useCanvas";
 import { useViewport } from "../hooks/useViewport";
 import { FrameData, frameStore } from "../models/frameStore";
@@ -38,6 +38,12 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
 
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
+
+  // track hover details for overlay bins
+  const [hoverInfo, setHoverInfo] = useState<
+    | { bin: number; value: number; x: number; y: number }
+    | null
+  >(null);
 
   // keep ref synced so that subscription callback always sees the latest state
   useEffect(() => {
@@ -112,14 +118,69 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
     };
 
     const move = (e: MouseEvent) => {
-      if (!isDraggingRef.current) return;
-      const dx = e.clientX - lastXRef.current;
-      fftViewPort.onDrag(dx);
-      lastXRef.current = e.clientX;
+      if (isDraggingRef.current) {
+        const dx = e.clientX - lastXRef.current;
+        fftViewPort.onDrag(dx);
+        lastXRef.current = e.clientX;
+        return;
+      }
+      // handle hover when not dragging
+      const frame = latestFrame.current;
+      const canvas = canvasRef.current;
+      if (!frame || !canvas) {
+        setHoverInfo(null);
+        return;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const yCanvas = (e.clientY - rect.top) * scaleY;
+
+      const innerHeight = canvas.height - MARGIN.top - MARGIN.bottom;
+      const spectrumTop = MARGIN.top;
+      const spectrumBottom = spectrumTop + innerHeight;
+
+      if (yCanvas < spectrumTop || yCanvas > spectrumBottom) {
+        // outside the Y-axis region entirely
+        setHoverInfo(null);
+        return;
+      }
+
+      const x = (e.clientX - rect.left) * scaleX - MARGIN.left;
+      const v = fftViewPortRef.current;
+      const bin = Math.floor(v.offset + x / v.pxPerUnit);
+      if (bin < 0 || bin >= frame.spectrum.length) {
+        setHoverInfo(null);
+        return;
+      }
+
+      // determine the bar's vertical span in canvas coords
+      const value = frame.spectrum[bin];
+      const maxValue = 200; // dbMax from renderer
+      const normalized = Math.min(1, Math.max(0, value / maxValue));
+      const barHeight = innerHeight * normalized;
+      const barTop = spectrumTop + innerHeight - barHeight;
+
+      if (yCanvas < barTop) {
+        // cursor is above the bar itself
+        setHoverInfo(null);
+        return;
+      }
+
+      // show tooltip for any valid bin within its bar height
+      const tooltipX = e.clientX - rect.left + 10;
+      const tooltipY = e.clientY - rect.top + 10;
+      setHoverInfo({ bin, value, x: tooltipX, y: tooltipY });
     };
 
     const up = (_e: MouseEvent) => {
       isDraggingRef.current = false;
+    };
+
+    const leave = () => {
+      setHoverInfo(null);
     };
 
     // user clicks a bar while in analysis mode to mark a range of bins
@@ -198,6 +259,7 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
 
     canvas.addEventListener("mousedown", down);
     canvas.addEventListener("mousemove", move);
+    canvas.addEventListener("mouseleave", leave);
     canvas.addEventListener("mouseup", up);
     canvas.addEventListener("click", click);
     canvas.addEventListener("dblclick", dblclick);
@@ -205,6 +267,7 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
     return () => {
       canvas.removeEventListener("mousedown", down);
       canvas.removeEventListener("mousemove", move);
+      canvas.removeEventListener("mouseleave", leave);
       canvas.removeEventListener("mouseup", up);
       canvas.removeEventListener("click", click);
       canvas.removeEventListener("dblclick", dblclick);
@@ -244,6 +307,11 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
     }
   }, [analysisMode, clickSelection]);
 
+  // clear hover when the selection changes (so stale tooltip doesn't linger)
+  useEffect(() => {
+    if (hoverInfo) setHoverInfo(null);
+  }, [clickSelection]);
+
 
   useEffect(draw, [fftViewPort.pxPerUnit, fftViewPort.offset]);
 
@@ -253,12 +321,31 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   }, [clickSelection, draw]);
 
   return (
-    <>
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <canvas
         ref={canvasRef}
         style={{ width: "100%", height: "100%" }}
         onWheel={onWheel}
       />
-    </>
+      {hoverInfo && (
+        <div
+          style={{
+            position: "absolute",
+            top: hoverInfo.y,
+            left: hoverInfo.x,
+            pointerEvents: "none",
+            background: "rgba(0,0,0,0.75)",
+            color: "#fff",
+            padding: "2px 6px",
+            borderRadius: 3,
+            fontSize: 12,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <div>bin: {hoverInfo.bin}</div>
+          <div>value: {hoverInfo.value.toFixed(2)}</div>
+        </div>
+      )}
+    </div>
   );
 }
