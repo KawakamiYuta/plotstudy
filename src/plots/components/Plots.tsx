@@ -39,9 +39,13 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
 
-  // track hover details for overlay bins
+  // track hover details. two modes:
+  // - single: info for a specific bin
+  // - range: special case during analysis where the cursor is within
+  //   an overlay_bins region; show data for all bins in that range.
   const [hoverInfo, setHoverInfo] = useState<
-    | { bin: number; value: number; x: number; y: number }
+    | { type: "single"; bin: number; value: number; x: number; y: number }
+    | { type: "range"; bins: { bin: number; value: number }[]; x: number; y: number }
     | null
   >(null);
 
@@ -169,10 +173,24 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
         return;
       }
 
-      // show tooltip for any valid bin within its bar height
       const tooltipX = e.clientX - rect.left + 10;
       const tooltipY = e.clientY - rect.top + 10;
-      setHoverInfo({ bin, value, x: tooltipX, y: tooltipY });
+
+      // special case: in analysis mode with an overlay selection range,
+      // display information for entire range rather than a single bin.
+      if (
+        analysisMode &&
+        clickSelection &&
+        (clickSelection.bins.includes(bin) || clickSelection.center === bin)
+      ) {
+        const binsData = clickSelection.bins.map((b) => ({
+          bin: b,
+          value: frame.spectrum[b],
+        }));
+        setHoverInfo({ type: "range", bins: binsData, x: tooltipX, y: tooltipY });
+      } else {
+        setHoverInfo({ type: "single", bin, value, x: tooltipX, y: tooltipY });
+      }
     };
 
     const up = (_e: MouseEvent) => {
@@ -214,10 +232,7 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
       // try to look up overlay bins from the frame mapping; fall back to radius
       if (frame.overlay_bins_by_center && frame.overlay_bins_by_center[bin]) {
         bins = frame.overlay_bins_by_center[bin];
-      } else {
-        // fallback behaviour: use fixed radius neighbourhood
-        for (let i = start; i < end; i++) bins.push(i);
-      }
+      } 
 
       setClickSelection({ center: bin, bins });
       draw();
@@ -340,10 +355,25 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
             borderRadius: 3,
             fontSize: 12,
             whiteSpace: "nowrap",
+            maxHeight: 200,
+            overflowY: "auto",
           }}
         >
-          <div>bin: {hoverInfo.bin}</div>
-          <div>value: {hoverInfo.value.toFixed(2)}</div>
+          {hoverInfo.type === "single" ? (
+            <>
+              <div>bin: {hoverInfo.bin}</div>
+              <div>value: {hoverInfo.value.toFixed(2)}</div>
+            </>
+          ) : (
+            <>
+              <div>overlay range:</div>
+              {hoverInfo.bins.map((b) => (
+                <div key={b.bin}>
+                  {b.bin}: {b.value.toFixed(2)}
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>
