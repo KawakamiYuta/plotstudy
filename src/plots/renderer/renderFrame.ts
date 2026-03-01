@@ -103,6 +103,7 @@ export function renderFrame(
         waveHeight,
         marginHeight,
         fftHeight,
+        dbMax,
         fftViewPort.pxPerUnit,
         fftViewPort.offset
     );

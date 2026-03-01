@@ -53,6 +53,7 @@ export function drawFftGrid(
     WAVE_HEIGHT: number,
     MARGIN_HEIGHT: number,
     FFT_HEIGHT: number,
+    maxValue: number,
     pxPerBin: number = 1,
     offset: number = 0
 ) {
@@ -60,15 +61,17 @@ export function drawFftGrid(
     ctx.lineWidth = 1;
     ctx.beginPath();
 
-    // horizontal lines spaced like FFT Y-axis ticks (multiples of 5)
+    // horizontal lines spaced to match FFT Y-axis labels.  We calculate the
+    // same tick positions used by drawFftAxisLabels so that labels and grid
+    // lines always line up.
     {
         const approxLabelHeight = 14;
         const availableHeight = FFT_HEIGHT;
         const maxTicks = Math.floor(availableHeight / approxLabelHeight);
         let tickCount = Math.max(2, Math.min(12, maxTicks));
-        const rawStep = 1 / tickCount;
-        const stepVal = Math.max(5, Math.ceil((rawStep * maxTicks) / 5) * 5);
-        tickCount = Math.floor(maxTicks / (stepVal / 1));
+        const rawStep = maxValue / tickCount;
+        const step = Math.max(5, Math.ceil(rawStep / 5) * 5);
+        tickCount = Math.floor(maxValue / step);
         for (let i = 0; i <= tickCount; i++) {
             const y = WAVE_HEIGHT + MARGIN_HEIGHT + (FFT_HEIGHT / tickCount) * i;
             ctx.moveTo(0, y);
