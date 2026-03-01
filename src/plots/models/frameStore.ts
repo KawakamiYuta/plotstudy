@@ -3,6 +3,11 @@ export interface FrameData {
   frame_number: number;
   samples: number[];
   spectrum: number[];
+
+  // auxiliary information that may accompany a frame
+  threshold?: number;                        // current threshold level
+  highlight_range?: { start: number; end: number }; // optional highlighted bin range
+  analysis_bins?: number[];                   // bins with special coloring
 }
 
 type FrameListener = (frame: FrameData) => void;

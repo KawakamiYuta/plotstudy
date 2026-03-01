@@ -11,7 +11,7 @@ const data = Array.from({ length: 64 }, (_, i) =>
 );
 
 export default function App() {
-  const [threshold, setThreshold] = useState(20);
+  const [threshold, setThreshold] = useState(20); // used by control panel for config
 
   return (
     <div className="app">
@@ -24,10 +24,7 @@ export default function App() {
 
       <div className="main">
         <div className="left">
-          <Spectrum
-            highlightRange={{ start: 330, end: 500 }}
-            threshold={threshold}
-          />
+          <Spectrum />
         </div>
 
         <div className="right">

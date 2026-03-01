@@ -6,20 +6,16 @@ import { renderFrame } from "../renderer/renderFrame";
 import { MARGIN } from "../renderer/layout";
 
 /**
- * Props for the spectrum-only canvas.  Consumers may provide an optional
- * `highlightRange` to draw a semi-transparent overlay over a range of
- * frequency bins on the spectrum plot.  The component itself manages an
- * "analysis mode" state that is entered by double-clicking the highlighted
- * region and exited either by another double-click or by pressing ESC.
+ * Props for the spectrum-only canvas.  All rendering metadata (threshold,
+ * highlight range, special bins) is supplied inside the incoming frame
+ * payload—there are no props to control the display directly.
  */
 interface SpectrumOnlyProps {
-  // optional bin range to highlight on spectrum
-  highlightRange?: { start: number; end: number };
-  // current threshold value for highlighting special bins
-  threshold: number;
+  // component no longer accepts threshold/highlight range;
+  // metadata comes with the frame data itself
 }
 
-export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnlyProps) {
+export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useCanvas(canvasRef);
   const fftViewPort = useViewport();
@@ -45,46 +41,45 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
     const v = fftViewPortRef.current;
     const canvasWidth = canvasRef.current.clientWidth;
 
-    // when in analysis mode, keep the viewport strictly within the
-    // highlighted range and prevent zooming out past its width.
-    if (analysisMode && highlightRange) {
+    const frame = latestFrame.current;
+    const hrange = frame.highlight_range;
+
+    // when in analysis mode, constrain viewport to highlight range if provided
+    if (analysisMode && hrange) {
       const visible = canvasWidth / v.pxPerUnit;
-      const range = highlightRange.end - highlightRange.start;
+      const range = hrange.end - hrange.start;
       const minPx = canvasWidth / Math.max(range, 1);
 
       let newPx = v.pxPerUnit;
       if (newPx < minPx) newPx = minPx;
 
       let newOffset = v.offset;
-      const minOff = highlightRange.start;
-      const maxOff = Math.max(highlightRange.end - visible, minOff);
+      const minOff = hrange.start;
+      const maxOff = Math.max(hrange.end - visible, minOff);
       if (newOffset < minOff) newOffset = minOff;
       if (newOffset > maxOff) newOffset = maxOff;
 
       if (newOffset !== v.offset || newPx !== v.pxPerUnit) {
         fftViewPort.setViewport(newOffset, newPx);
-        // state change will trigger another draw via effect; abandon this draw
         return;
       }
     } else {
-      v.clampOffset(latestFrame.current.spectrum.length, canvasWidth);
+      v.clampOffset(frame.spectrum.length, canvasWidth);
     }
 
     renderFrame(
       ctxRef.current,
       canvasRef.current,
-      latestFrame.current,
+      frame,
       v,
       v,
       false,
-      highlightRange ? highlightRange.start : null,
-      highlightRange ? highlightRange.end : null,
-      analysisMode,
-      threshold
+      analysisMode
     );
-  }, [highlightRange, analysisMode, threshold]);
+  }, [analysisMode]);
   useEffect(() => {
     const unsubscribe = frameStore.subscribe((frame) => {
+      console.log("Received new frame", frame);
       latestFrame.current = frame;
       draw();
     });
@@ -113,29 +108,29 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
       isDraggingRef.current = false;
     };
 
+
     const dblclick = (e: MouseEvent) => {
-      if (!highlightRange || !canvasRef.current) return;
+      const frame = latestFrame.current;
+      const hrange = frame?.highlight_range;
+      if (!hrange || !canvasRef.current) return;
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const x = (e.clientX - rect.left) * scaleX - MARGIN.left;
       const v = fftViewPortRef.current;
       const bin = Math.floor(v.offset + x / v.pxPerUnit);
-      if (bin >= highlightRange.start && bin < highlightRange.end) {
+      if (bin >= hrange.start && bin < hrange.end) {
         if (!analysisMode) {
-          // entering analysis, remember current viewport and zoom to range
           prevViewportRef.current = { offset: v.offset, pxPerUnit: v.pxPerUnit };
           const width = canvas.clientWidth;
-          const totalBins = latestFrame.current ? latestFrame.current.spectrum.length : 0;
-          const range = highlightRange.end - highlightRange.start;
-          // const margin = Math.max(1, Math.floor(range * 0.1));
+          const totalBins = frame ? frame.spectrum.length : 0;
+          const range = hrange.end - hrange.start;
           const margin = 0;
-          const start = Math.max(0, highlightRange.start - margin);
-          const end = Math.min(totalBins, highlightRange.end + margin);
+          const start = Math.max(0, hrange.start - margin);
+          const end = Math.min(totalBins, hrange.end + margin);
           fftViewPort.zoomToRange(start, end, width);
           setAnalysisMode(true);
         } else {
-          // leaving analysis, restore previous viewport
           setAnalysisMode(false);
           if (prevViewportRef.current) {
             fftViewPort.setViewport(
@@ -159,7 +154,7 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
       canvas.removeEventListener("mouseup", up);
       canvas.removeEventListener("dblclick", dblclick);
     };
-  }, [highlightRange, draw, analysisMode]);
+  }, [draw, analysisMode]);
 
 
   const onWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -186,6 +181,7 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [analysisMode, draw, fftViewPort]);
+
 
   useEffect(draw, [fftViewPort.pxPerUnit, fftViewPort.offset]);
 

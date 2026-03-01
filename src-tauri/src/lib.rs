@@ -1,18 +1,21 @@
-use serde::de;
-use tauri::{Emitter, Manager};
-use rand::Rng;
+//use serde::de;
+//use rand::Rng;
+#[allow(unused_imports)]
+use tauri::Manager;
 use rand::RngExt;
-use std::thread;
-use std::time::Duration;
-use std::process::Command;
+//use std::thread;
+//use std::time::Duration;
+//use std::process::Command;
 use ini::Ini;
 use std::env;
+use tauri::Emitter;
 
 mod signal;
 use signal::generate_pulse;
-use rustfft::{FftPlanner, num_complex::Complex};
+use rustfft::FftPlanner;
 const FRAME_SIZE: usize = 2048;
 
+#[allow(dead_code)]
 fn generate_gaussian_pulse_train(
     pulse_width: usize,
     pri: usize,
@@ -42,6 +45,7 @@ fn generate_gaussian_pulse_train(
     buffer
 }
 
+#[allow(dead_code)]
 fn add_noise(buffer: &mut [f32], level: f32) {
     let mut rng = rand::rng();
 
@@ -51,6 +55,7 @@ fn add_noise(buffer: &mut [f32], level: f32) {
 }
 
 
+#[allow(dead_code)]
 fn generate_wave() -> Vec<f32> {
     let mut rng = rand::rng();
     let mut buffer = vec![0.0f32; FRAME_SIZE];
@@ -76,6 +81,7 @@ fn generate_wave() -> Vec<f32> {
     buffer
 }
 
+#[allow(dead_code)]
 fn generate_spectrum() -> Vec<f32> {
     let mut rng = rand::rng();
     let len = FRAME_SIZE / 2;
@@ -99,10 +105,53 @@ fn generate_spectrum() -> Vec<f32> {
 }
 
 #[derive(serde::Serialize, Clone, serde::Deserialize)]
+struct Range {
+    start: usize,
+    end: usize,
+}
+
+#[derive(serde::Serialize, Clone, serde::Deserialize)]
 struct FrameData {
     frame_number: u64,
     samples: Vec<f32>,
     spectrum: Vec<f32>,
+
+    // optional metadata that accompanies a frame
+    threshold: i32,
+    highlight_range: Option<Range>,
+    analysis_bins: Vec<usize>,
+}
+
+// helper to pull the current threshold/highlight/bins from the INI file
+fn load_frame_meta() -> Result<(i32, Option<Range>, Vec<usize>), String> {
+    let ini_path = "config.ini";
+    let conf = Ini::load_from_file(ini_path)
+        .map_err(|e| format!("Failed to read ini: {}", e))?;
+
+    let get_val = |section: &str, key: &str| {
+        conf.section(Some(section))
+            .and_then(|sec| sec.get(key))
+            .map(|s| s.to_string())
+    };
+
+    let threshold = get_val("Execution", "threshold")
+        .and_then(|s| s.parse::<i32>().ok())
+        .unwrap_or(0);
+
+    // optional highlight range
+    let start = get_val("Analysis", "highlight_start")
+        .and_then(|s| s.parse::<usize>().ok());
+    let end = get_val("Analysis", "highlight_end")
+        .and_then(|s| s.parse::<usize>().ok());
+    let highlight = start.and_then(|s| end.map(|e| (s, e)));
+
+    let bins_str = get_val("Analysis", "bins").unwrap_or_default();
+    let bins: Vec<usize> = bins_str
+        .split(',')
+        .filter_map(|s| s.trim().parse::<usize>().ok())
+        .collect();
+
+    Ok((threshold, highlight.map(|(s, e)| Range { start: s, end: e }), bins))
 }
 
 fn convert_disp(power: &mut [f32]) {
@@ -132,11 +181,19 @@ fn send_frame(app: &tauri::AppHandle) {
     fft.process(&mut pulse_iq);
     let mut spectrum: Vec<f32> = pulse_iq.iter().map(|e| 10.*e.norm_sqr().log10()).collect();
     // convert_disp(&mut spectrum);
+    // pull threshold/highlight/bins from configuration each frame
+    let (threshold, highlight_range, analysis_bins) =
+        load_frame_meta().unwrap_or((0, None, Vec::new()));
+
     let frame = FrameData {
         frame_number: 0,
         samples: power.to_vec(),
         spectrum: spectrum,
+        threshold,
+        highlight_range,
+        analysis_bins,
     };
+    // use emit_all which is available on AppHandle to broadcast the event
     app.emit("wave-frame", frame).unwrap();
 }
 
@@ -149,6 +206,7 @@ fn pull_frame(app: tauri::AppHandle) {
 struct CommandParams {
        threshold: i32,
 }
+
 
 // #[tauri::command]
 // fn run_external_command(params: CommandParams) {
@@ -191,7 +249,7 @@ fn run_external_command(params: CommandParams) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-            let app_handle = app.handle().clone();
+            let _app_handle = app.handle().clone();
 
             // thread::spawn(move || {
             //     loop {

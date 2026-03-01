@@ -12,6 +12,9 @@
  * @param offset horizontal offset in bins (for scrolling/zooming)
  * @param highlightStartBin optional first bin of highlighted range (inclusive)
  * @param highlightEndBin optional last bin of highlighted range (exclusive)
+ * @param analysisMode whether we're in analysis mode
+ * @param threshold threshold for drawing/colouring
+ * @param analysisBins list of bins returned by backend; those bars get a distinct color
  */
 export function drawSpectrum(
   ctx: CanvasRenderingContext2D,
@@ -25,7 +28,8 @@ export function drawSpectrum(
   highlightStartBin: number | null = null,
   highlightEndBin: number | null = null,
   analysisMode: boolean = false,
-  threshold: number = 0
+  threshold: number = 0,
+  analysisBins: number[] = []
 ) {
   if (!spectrum.length) return;
 
@@ -37,8 +41,11 @@ export function drawSpectrum(
     Math.ceil(offset + innerWidth / pxPerBin)
   );
 
-  // draw overlay if a valid range is provided
+  console.log("highlight range", highlightStartBin, highlightEndBin, "threshold", threshold, "analysisBins", analysisBins);
+
+  // draw overlay if a valid range is provided (not during analysis)
   if (
+    !analysisMode &&
     highlightStartBin !== null &&
     highlightEndBin !== null &&
     highlightEndBin > highlightStartBin
@@ -79,23 +86,28 @@ export function drawSpectrum(
 
     // analysis mode coloring
     if (analysisMode) {
-      if (value >= threshold) {
+      if (analysisBins.includes(i)) {
+        ctx.fillStyle = "#8bc34a"; // distinct color for backend-provided bins
+      } else if (value >= threshold) {
         ctx.fillStyle = "#ffeb3b"; // highlight high values
-      } else if (
-        highlightStartBin !== null &&
-        highlightEndBin !== null &&
-        i >= highlightStartBin &&
-        i < highlightEndBin
-      ) {
-        ctx.fillStyle = "#4fc3f7"; // highlight range
       } else {
-        ctx.fillStyle = "white";
+        ctx.fillStyle = "#3d3d3d";
       }
     }
 
     const barWidth = pxPerBin * 0.9;
 
     ctx.fillRect(x, y, barWidth, barHeight);
+  }
+
+  // draw threshold line during analysis mode
+  if (analysisMode) {
+    const yLine = offsetY + height - (threshold / maxValue) * height;
+    ctx.strokeStyle = "#ffeb3b";
+    ctx.beginPath();
+    ctx.moveTo(0, yLine);
+    ctx.lineTo(innerWidth, yLine);
+    ctx.stroke();
   }
 
   ctx.restore();

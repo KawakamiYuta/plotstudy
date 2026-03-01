@@ -19,8 +19,11 @@ type Viewport = {
  * @param viewport view parameters for waveform (ignored if showWave=false)
  * @param fftViewPort view parameters for spectrum
  * @param showWave whether to render waveform portion
- * @param highlightStartBin optional start of spectrum highlight range
- * @param highlightEndBin optional end of spectrum highlight range
+ * @param analysisMode whether to render analysis style (coloring/lock)
+ *
+ * The various metadata values (threshold, highlight range, bin list) are
+ * expected to be carried inside `frame` itself; callers no longer need to
+ * pass them separately.
  */
 export function renderFrame(
     ctx: CanvasRenderingContext2D,
@@ -29,10 +32,7 @@ export function renderFrame(
     viewport: Viewport,
     fftViewPort: Viewport,
     showWave: boolean = true,
-    highlightStartBin: number | null = null,
-    highlightEndBin: number | null = null,
-    analysisMode: boolean = false,
-    threshold: number = 0
+    analysisMode: boolean = false
 ) {
     // ctx and canvas already checked by caller
     if (!ctx) return;
@@ -59,6 +59,11 @@ export function renderFrame(
     const linMax = 1;
     const dbMax = 200;
 
+    const highlightStartBin = frame.highlight_range ? frame.highlight_range.start : null;
+    const highlightEndBin = frame.highlight_range ? frame.highlight_range.end : null;
+    const threshold = frame.threshold ?? 0;
+    const analysisBins = frame.analysis_bins ?? [];
+
     if (showWave) {
         drawWave(
             ctx,
@@ -84,7 +89,8 @@ export function renderFrame(
         highlightStartBin,
         highlightEndBin,
         analysisMode,
-        threshold
+        threshold,
+        analysisBins
     );
 
     drawFftGrid(
