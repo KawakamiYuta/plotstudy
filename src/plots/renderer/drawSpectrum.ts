@@ -29,7 +29,8 @@ export function drawSpectrum(
   highlightEndBin: number | null = null,
   analysisMode: boolean = false,
   threshold: number = 0,
-  analysisBins: number[] = []
+  analysisBins: number[] = [],
+  selectedBins: number[] = [] // bins chosen by user click
 ) {
   if (!spectrum.length) return;
 
@@ -86,7 +87,9 @@ export function drawSpectrum(
 
     // analysis mode coloring
     if (analysisMode) {
-      if (analysisBins.includes(i)) {
+      if (selectedBins.includes(i)) {
+        ctx.fillStyle = "#42a5f5"; // blue for user-selected range
+      } else if (analysisBins.includes(i)) {
         ctx.fillStyle = "#8bc34a"; // distinct color for backend-provided bins
       } else if (value >= threshold) {
         ctx.fillStyle = "#ffeb3b"; // highlight high values

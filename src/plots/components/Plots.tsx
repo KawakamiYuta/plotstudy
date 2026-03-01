@@ -15,6 +15,8 @@ interface SpectrumOnlyProps {
   // metadata comes with the frame data itself
 }
 
+const CLICK_RADIUS = 10; // number of bins either side of clicked bar to color
+
 export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useCanvas(canvasRef);
@@ -23,6 +25,8 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   const latestFrame = useRef<FrameData | null>(null);
   // track analysis mode locally rather than via props
   const [analysisMode, setAnalysisMode] = React.useState(false);
+  // bins selected by a click while in analysis mode; we color these specially
+  const [clickedBins, setClickedBins] = React.useState<number[]>([]);
   // remember viewport before entering analysis so we can restore it
   const prevViewportRef = useRef<{ offset: number; pxPerUnit: number } | null>(null);
 
@@ -67,6 +71,8 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
       v.clampOffset(frame.spectrum.length, canvasWidth);
     }
 
+    // pass the clicked bins directly to the renderer so they can be
+    // coloured separately from any backend-provided analysis_bins.
     renderFrame(
       ctxRef.current,
       canvasRef.current,
@@ -74,9 +80,10 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
       v,
       v,
       false,
-      analysisMode
+      analysisMode,
+      clickedBins // this argument will be handed off as selectedBins
     );
-  }, [analysisMode]);
+  }, [analysisMode, clickedBins]);
   useEffect(() => {
     const unsubscribe = frameStore.subscribe((frame) => {
       console.log("Received new frame", frame);
@@ -108,6 +115,31 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
       isDraggingRef.current = false;
     };
 
+    // user clicks a bar while in analysis mode to mark a range of bins
+    const click = (e: MouseEvent) => {
+      // only react to single clicks (dblclick will have detail === 2)
+      if (e.detail !== 1) return;
+      if (!analysisMode) return;
+      const frame = latestFrame.current;
+      if (!frame || !canvasRef.current) return;
+
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const x = (e.clientX - rect.left) * scaleX - MARGIN.left;
+      const v = fftViewPortRef.current;
+      const bin = Math.floor(v.offset + x / v.pxPerUnit);
+      if (bin < 0 || bin >= frame.spectrum.length) return;
+
+      // choose a fixed radius around the clicked bin (can be adjusted later)
+      const start = Math.max(0, bin - CLICK_RADIUS);
+      const end = Math.min(frame.spectrum.length, bin + CLICK_RADIUS + 1);
+      const bins: number[] = [];
+      for (let i = start; i < end; i++) bins.push(i);
+
+      setClickedBins(bins);
+      draw();
+    };
 
     const dblclick = (e: MouseEvent) => {
       const frame = latestFrame.current;
@@ -146,12 +178,14 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
     canvas.addEventListener("mousedown", down);
     canvas.addEventListener("mousemove", move);
     canvas.addEventListener("mouseup", up);
+    canvas.addEventListener("click", click);
     canvas.addEventListener("dblclick", dblclick);
 
     return () => {
       canvas.removeEventListener("mousedown", down);
       canvas.removeEventListener("mousemove", move);
       canvas.removeEventListener("mouseup", up);
+      canvas.removeEventListener("click", click);
       canvas.removeEventListener("dblclick", dblclick);
     };
   }, [draw, analysisMode]);
@@ -182,8 +216,20 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [analysisMode, draw, fftViewPort]);
 
+  // when exiting analysis mode remove any user-selected bins
+  useEffect(() => {
+    if (!analysisMode && clickedBins.length) {
+      setClickedBins([]);
+    }
+  }, [analysisMode, clickedBins.length]);
+
 
   useEffect(draw, [fftViewPort.pxPerUnit, fftViewPort.offset]);
+
+  // redraw when user-selected bins update
+  useEffect(() => {
+    draw();
+  }, [clickedBins, draw]);
 
   return (
     <>
