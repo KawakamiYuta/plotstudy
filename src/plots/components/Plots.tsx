@@ -44,7 +44,31 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
 
     const v = fftViewPortRef.current;
     const canvasWidth = canvasRef.current.clientWidth;
-    v.clampOffset(latestFrame.current.spectrum.length, canvasWidth);
+
+    // when in analysis mode, keep the viewport strictly within the
+    // highlighted range and prevent zooming out past its width.
+    if (analysisMode && highlightRange) {
+      const visible = canvasWidth / v.pxPerUnit;
+      const range = highlightRange.end - highlightRange.start;
+      const minPx = canvasWidth / Math.max(range, 1);
+
+      let newPx = v.pxPerUnit;
+      if (newPx < minPx) newPx = minPx;
+
+      let newOffset = v.offset;
+      const minOff = highlightRange.start;
+      const maxOff = Math.max(highlightRange.end - visible, minOff);
+      if (newOffset < minOff) newOffset = minOff;
+      if (newOffset > maxOff) newOffset = maxOff;
+
+      if (newOffset !== v.offset || newPx !== v.pxPerUnit) {
+        fftViewPort.setViewport(newOffset, newPx);
+        // state change will trigger another draw via effect; abandon this draw
+        return;
+      }
+    } else {
+      v.clampOffset(latestFrame.current.spectrum.length, canvasWidth);
+    }
 
     renderFrame(
       ctxRef.current,
@@ -104,7 +128,8 @@ export default function SpectrumOnly({ highlightRange, threshold }: SpectrumOnly
           const width = canvas.clientWidth;
           const totalBins = latestFrame.current ? latestFrame.current.spectrum.length : 0;
           const range = highlightRange.end - highlightRange.start;
-          const margin = Math.max(1, Math.floor(range * 0.1));
+          // const margin = Math.max(1, Math.floor(range * 0.1));
+          const margin = 0;
           const start = Math.max(0, highlightRange.start - margin);
           const end = Math.min(totalBins, highlightRange.end + margin);
           fftViewPort.zoomToRange(start, end, width);
