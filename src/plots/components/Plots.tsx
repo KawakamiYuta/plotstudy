@@ -148,10 +148,13 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
         if (!frame.analysis_bins.includes(bin)) {
           return; // clicked bin not permitted
         }
-        // surrounding bins are still the full radius window (not limited)
-        for (let i = start; i < end; i++) bins.push(i);
+      }
+
+      // try to look up overlay bins from the frame mapping; fall back to radius
+      if (frame.overlay_bins_by_center && frame.overlay_bins_by_center[bin]) {
+        bins = frame.overlay_bins_by_center[bin];
       } else {
-        // no backend data, just use full neighbourhood
+        // fallback behaviour: use fixed radius neighbourhood
         for (let i = start; i < end; i++) bins.push(i);
       }
 

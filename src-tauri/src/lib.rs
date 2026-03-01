@@ -120,10 +120,12 @@ struct FrameData {
     threshold: i32,
     highlight_range: Option<Range>,
     analysis_bins: Vec<usize>,
+    // mapping used by frontend when a center bin is clicked
+    overlay_bins_by_center: Option<std::collections::HashMap<usize, Vec<usize>>>,
 }
 
 // helper to pull the current threshold/highlight/bins from the INI file
-fn load_frame_meta() -> Result<(i32, Option<Range>, Vec<usize>), String> {
+fn load_frame_meta() -> Result<(i32, Option<Range>, Vec<usize>, Option<std::collections::HashMap<usize, Vec<usize>>>), String> {
     let ini_path = "config.ini";
     let conf = Ini::load_from_file(ini_path)
         .map_err(|e| format!("Failed to read ini: {}", e))?;
@@ -151,7 +153,28 @@ fn load_frame_meta() -> Result<(i32, Option<Range>, Vec<usize>), String> {
         .filter_map(|s| s.trim().parse::<usize>().ok())
         .collect();
 
-    Ok((threshold, highlight.map(|(s, e)| Range { start: s, end: e }), bins))
+    // overlay mapping: section "Overlay" with keys equal to center bin and
+    // comma-separated neighbor lists
+    let mut overlay_map: std::collections::HashMap<usize, Vec<usize>> = std::collections::HashMap::new();
+    if let Some(sec) = conf.section(Some("Overlay")) {
+        for (k, v) in sec.iter() {
+            if let Ok(center) = k.trim().parse::<usize>() {
+                let list: Vec<usize> = v
+                    .split(',')
+                    .filter_map(|s| s.trim().parse::<usize>().ok())
+                    .collect();
+                overlay_map.insert(center, list);
+            }
+        }
+    }
+    let overlay_option = if overlay_map.is_empty() { None } else { Some(overlay_map) };
+
+    Ok((
+        threshold,
+        highlight.map(|(s, e)| Range { start: s, end: e }),
+        bins,
+        overlay_option,
+    ))
 }
 
 fn convert_disp(power: &mut [f32]) {
@@ -181,9 +204,9 @@ fn send_frame(app: &tauri::AppHandle) {
     fft.process(&mut pulse_iq);
     let mut spectrum: Vec<f32> = pulse_iq.iter().map(|e| 10.*e.norm_sqr().log10()).collect();
     // convert_disp(&mut spectrum);
-    // pull threshold/highlight/bins from configuration each frame
-    let (threshold, highlight_range, analysis_bins) =
-        load_frame_meta().unwrap_or((0, None, Vec::new()));
+    // pull threshold/highlight/bins (and optional overlay mapping) from configuration each frame
+    let (threshold, highlight_range, analysis_bins, overlay_map) =
+        load_frame_meta().unwrap_or((0, None, Vec::new(), None));
 
     let frame = FrameData {
         frame_number: 0,
@@ -192,6 +215,7 @@ fn send_frame(app: &tauri::AppHandle) {
         threshold,
         highlight_range,
         analysis_bins,
+        overlay_bins_by_center: overlay_map,
     };
     // use emit_all which is available on AppHandle to broadcast the event
     app.emit("wave-frame", frame).unwrap();
