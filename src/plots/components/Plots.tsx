@@ -17,6 +17,12 @@ interface SpectrumOnlyProps {
 
 const CLICK_RADIUS = 10; // number of bins either side of clicked bar to color
 
+// when clicking, remember both the neighborhood and the exact bin for special color
+interface ClickSelection {
+  center: number;
+  bins: number[];
+}
+
 export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useCanvas(canvasRef);
@@ -25,8 +31,8 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   const latestFrame = useRef<FrameData | null>(null);
   // track analysis mode locally rather than via props
   const [analysisMode, setAnalysisMode] = React.useState(false);
-  // bins selected by a click while in analysis mode; we color these specially
-  const [clickedBins, setClickedBins] = React.useState<number[]>([]);
+  // selection triggered by a click: center bin + surrounding bins
+  const [clickSelection, setClickSelection] = React.useState<ClickSelection | null>(null);
   // remember viewport before entering analysis so we can restore it
   const prevViewportRef = useRef<{ offset: number; pxPerUnit: number } | null>(null);
 
@@ -81,9 +87,10 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
       v,
       false,
       analysisMode,
-      clickedBins // this argument will be handed off as selectedBins
+      clickSelection ? clickSelection.bins : [], // selectedBins
+      clickSelection ? clickSelection.center : null
     );
-  }, [analysisMode, clickedBins]);
+  }, [analysisMode, clickSelection]);
   useEffect(() => {
     const unsubscribe = frameStore.subscribe((frame) => {
       console.log("Received new frame", frame);
@@ -134,10 +141,21 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
       // choose a fixed radius around the clicked bin (can be adjusted later)
       const start = Math.max(0, bin - CLICK_RADIUS);
       const end = Math.min(frame.spectrum.length, bin + CLICK_RADIUS + 1);
-      const bins: number[] = [];
-      for (let i = start; i < end; i++) bins.push(i);
+      let bins: number[] = [];
 
-      setClickedBins(bins);
+      // if backend provided analysis_bins we insist that the *center* is one of them
+      if (frame.analysis_bins && frame.analysis_bins.length) {
+        if (!frame.analysis_bins.includes(bin)) {
+          return; // clicked bin not permitted
+        }
+        // surrounding bins are still the full radius window (not limited)
+        for (let i = start; i < end; i++) bins.push(i);
+      } else {
+        // no backend data, just use full neighbourhood
+        for (let i = start; i < end; i++) bins.push(i);
+      }
+
+      setClickSelection({ center: bin, bins });
       draw();
     };
 
@@ -218,10 +236,10 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
 
   // when exiting analysis mode remove any user-selected bins
   useEffect(() => {
-    if (!analysisMode && clickedBins.length) {
-      setClickedBins([]);
+    if (!analysisMode && clickSelection) {
+      setClickSelection(null);
     }
-  }, [analysisMode, clickedBins.length]);
+  }, [analysisMode, clickSelection]);
 
 
   useEffect(draw, [fftViewPort.pxPerUnit, fftViewPort.offset]);
@@ -229,7 +247,7 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   // redraw when user-selected bins update
   useEffect(() => {
     draw();
-  }, [clickedBins, draw]);
+  }, [clickSelection, draw]);
 
   return (
     <>

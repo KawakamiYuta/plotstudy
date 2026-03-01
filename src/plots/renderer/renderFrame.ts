@@ -33,7 +33,8 @@ export function renderFrame(
     fftViewPort: Viewport,
     showWave: boolean = true,
     analysisMode: boolean = false,
-    selectedBins: number[] = []
+    selectedBins: number[] = [],
+    selectedCenter: number | null = null
 ) {
     // ctx and canvas already checked by caller
     if (!ctx) return;
@@ -92,7 +93,8 @@ export function renderFrame(
         analysisMode,
         threshold,
         analysisBins,
-        selectedBins
+        selectedBins,
+        selectedCenter
     );
 
     drawFftGrid(

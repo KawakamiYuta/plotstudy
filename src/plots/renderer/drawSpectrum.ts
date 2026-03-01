@@ -30,7 +30,8 @@ export function drawSpectrum(
   analysisMode: boolean = false,
   threshold: number = 0,
   analysisBins: number[] = [],
-  selectedBins: number[] = [] // bins chosen by user click
+  selectedBins: number[] = [], // bins chosen by user click
+  selectedCenter: number | null = null // exact clicked bin
 ) {
   if (!spectrum.length) return;
 
@@ -87,8 +88,8 @@ export function drawSpectrum(
 
     // analysis mode coloring
     if (analysisMode) {
-      if (selectedBins.includes(i)) {
-        ctx.fillStyle = "#42a5f5"; // blue for user-selected range
+      if (selectedCenter !== null && i === selectedCenter) {
+        ctx.fillStyle = "#1e88e5"; // darker blue for exact clicked bin
       } else if (analysisBins.includes(i)) {
         ctx.fillStyle = "#8bc34a"; // distinct color for backend-provided bins
       } else if (value >= threshold) {
@@ -101,6 +102,18 @@ export function drawSpectrum(
     const barWidth = pxPerBin * 0.9;
 
     ctx.fillRect(x, y, barWidth, barHeight);
+  }
+
+  // if the user has selected a range (via click) show a semi-transparent
+  // overlay over the neighbourhood.  draw it *after* the bars so it tints
+  // them rather than being hidden behind.
+  if (analysisMode && selectedBins.length) {
+    const r0 = Math.min(...selectedBins);
+    const r1 = Math.max(...selectedBins) + 1;
+    const x0 = (r0 - offset) * pxPerBin;
+    const x1 = (r1 - offset) * pxPerBin;
+    ctx.fillStyle = "rgba(66,165,245,0.2)"; // light blue overlay
+    ctx.fillRect(x0, offsetY, x1 - x0, height);
   }
 
   // draw threshold line during analysis mode
