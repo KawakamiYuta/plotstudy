@@ -269,25 +269,50 @@ fn run_external_command(params: CommandParams) -> Result<(), String> {
     Ok(())
 }
 
+use tauri::{WebviewWindowBuilder};
+
+#[tauri::command]
+fn open_sub(app: tauri::AppHandle) {
+    WebviewWindowBuilder::new(
+        &app,
+        "sub", // label
+        tauri::WebviewUrl::App("sub.html".into())
+    )
+    .title("Sub Window")
+    .inner_size(500.0, 400.0)
+    .build()
+    .unwrap();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
             let _app_handle = app.handle().clone();
 
-            // thread::spawn(move || {
-            //     loop {
-            //         send_frame(&app_handle);
-            //         thread::sleep(Duration::from_millis(100));
-            //     }
-            // });
+            #[cfg(target_os = "windows")]
+            {
+                let window = app.get_webview_window("main").unwrap();
+                apply_mica(&window);
+            }
 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             pull_frame,
-            run_external_command
+            run_external_command,
+            open_sub
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(target_os = "windows")]
+fn apply_mica(window: &tauri::WebviewWindow) {
+    use tauri::window::{EffectsBuilder, Effect};
+    window.set_effects(
+        EffectsBuilder::new()
+            .effect(Effect::Acrylic)
+            .build(),
+    ).unwrap();
 }

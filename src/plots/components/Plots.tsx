@@ -5,6 +5,32 @@ import { FrameData, frameStore } from "../models/frameStore";
 import { renderFrame } from "../renderer/renderFrame";
 import { MARGIN } from "../renderer/layout";
 
+import { Window } from "@tauri-apps/api/window";
+import { WaveformManager } from "./WaveformManager";
+
+const openWebViewWindow = (startBin: number, endBin: number) => {
+  const label = `waveform-${startBin}-${endBin}`;
+
+  const win = new Window(label, {
+    url: `/waveform?start=${startBin}&end=${endBin}`,
+    width: 800,
+    height: 400,
+    title: `waveform ${startBin}-${endBin}`,
+    transparent: false,
+    decorations: true,
+    theme: "dark"
+  });
+
+  win.once("tauri://created", () => {
+    console.log("window created");
+  });
+
+  win.once("tauri://error", (e) => {
+    console.error(e);
+  });
+  return win;
+};
+
 /**
  * Props for the spectrum-only canvas.  All rendering metadata (threshold,
  * highlight range, special bins) is supplied inside the incoming frame
@@ -38,6 +64,14 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
 
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
+
+  const openWaveformRef = useRef<
+    ((s: number, e: number) => void) | null
+  >(null);
+
+  const handleOpenWaveform = (startBin: number, endBin: number) => {
+    openWaveformRef.current?.(startBin, endBin);
+  };
 
   // track hover details. two modes:
   // - single: info for a specific bin
@@ -109,6 +143,65 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
     });
     return unsubscribe;
   }, [draw]);
+
+  // helper used when the user wants to inspect the time-domain waveform
+  // corresponding to a range of frequency bins.  The function opens a
+  // small pop‑up window, draws the current frame's samples for the
+  // requested span, and keeps it up‑to‑date until the window closes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // const openWaveformWindow = useCallback((startBin: number, endBin: number) => {
+  //   const win = openWebViewWindow(startBin, endBin);
+  //   if (!win) return;
+
+  //   // win.document.title = `waveform ${startBin}-${endBin}`;
+  //   // win.document.body.style.margin = "0";
+  //   const canvas = win.document.createElement("canvas");
+  //   canvas.style.width = "100%";
+  //   canvas.style.height = "100%";
+  //   // give it a reasonable drawing size so the ctx.scale calls work
+  //   canvas.width = 800;
+  //   canvas.height = 400;
+  //   win.document.body.appendChild(canvas);
+
+  //   const drawWindow = () => {
+  //     const frame = latestFrame.current;
+  //     if (!frame) return;
+  //     const samples = frame.samples;
+  //     const totalBins = frame.spectrum.length;
+  //     const s = Math.max(0, startBin);
+  //     const e = Math.min(totalBins, endBin);
+  //     if (s >= e) return;
+
+  //     const ctx = canvas.getContext("2d");
+  //     if (!ctx) return;
+  //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  //     // take the slice of samples matching the bin indices.  there is no
+  //     // exact mapping provided, so we use a 1:1 correspondence.
+  //     const slice = samples.slice(s, e);
+  //     const maxv = Math.max(...slice);
+  //     const minv = Math.min(...slice);
+  //     const range = maxv - minv || 1;
+
+  //     ctx.strokeStyle = "#000";
+  //     ctx.beginPath();
+  //     for (let i = 0; i < slice.length; i++) {
+  //       const x = (i / (slice.length - 1)) * canvas.width;
+  //       const norm = (slice[i] - minv) / range;
+  //       const y = canvas.height * (1 - norm);
+  //       if (i === 0) ctx.moveTo(x, y);
+  //       else ctx.lineTo(x, y);
+  //     }
+  //     ctx.stroke();
+  //   };
+
+  //   // draw now and then subscribe for updates
+  //   drawWindow();
+  //   const unsub = frameStore.subscribe(drawWindow);
+  //   win.addEventListener("beforeunload", () => {
+  //     unsub();
+  //   });
+  // }, []);
 
   // we don't need to remember previous viewport anymore; always zoom on dblclick
 
@@ -238,16 +331,44 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
       draw();
     };
 
-    const dblclick = (e: MouseEvent) => {
+    // when the user double-clicks, there are two possible actions:
+  // 1. if we're inside a set of user-selected bins, open a new window
+  //    and plot the corresponding time waveform.
+  // 2. otherwise behave as before: toggle analysis mode on the
+  //    highlight_range.
+  const dblclick = (e: MouseEvent) => {
       const frame = latestFrame.current;
-      const hrange = frame?.highlight_range;
-      if (!hrange || !canvasRef.current) return;
+      if (!frame || !canvasRef.current) return;
+
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const x = (e.clientX - rect.left) * scaleX - MARGIN.left;
       const v = fftViewPortRef.current;
       const bin = Math.floor(v.offset + x / v.pxPerUnit);
+
+      console.log("Double-clicked bin", bin);
+
+      // if we have a user click selection and the dblclick happened
+      // within that range, open the waveform viewer window instead of
+      // doing the normal analysis toggle.
+      if (
+        clickSelection &&
+        clickSelection.bins.length &&
+        clickSelection.bins.includes(bin)
+      ) {
+        const bins = clickSelection.bins;
+        const start = Math.min(...bins);
+        const end = Math.max(...bins) + 1; // exclusive
+        console.log("Opening waveform window for bins", bins);
+        // openWaveformWindow(start, end);
+        handleOpenWaveform(start, end);
+        return;
+      }
+
+      const hrange = frame.highlight_range;
+      if (!hrange) return;
+
       if (bin >= hrange.start && bin < hrange.end) {
         if (!analysisMode) {
           prevViewportRef.current = { offset: v.offset, pxPerUnit: v.pxPerUnit };
@@ -260,13 +381,13 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
           fftViewPort.zoomToRange(start, end, width);
           setAnalysisMode(true);
         } else {
-          setAnalysisMode(false);
-          if (prevViewportRef.current) {
-            fftViewPort.setViewport(
-              prevViewportRef.current.offset,
-              prevViewportRef.current.pxPerUnit
-            );
-          }
+          // setAnalysisMode(false);
+          // if (prevViewportRef.current) {
+          //   fftViewPort.setViewport(
+          //     prevViewportRef.current.offset,
+          //     prevViewportRef.current.pxPerUnit
+          //   );
+          // }
         }
         draw();
       }
@@ -337,6 +458,11 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
+        <WaveformManager
+        registerOpen={(fn) => {
+          openWaveformRef.current = fn;
+        }}
+      />
       <canvas
         ref={canvasRef}
         style={{ width: "100%", height: "100%" }}

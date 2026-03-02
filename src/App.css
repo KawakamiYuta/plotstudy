@@ -122,6 +122,19 @@ button {
   width: 100vw;
 }
 
+/* ウィンドウのスクロールバーを非表示にする */
+html, body {
+  overflow: hidden; /* 全体のスクロールを無効にし、スクロールバーを消す */
+}
+
+/* ネイティブスクロールバーを完全に隠す（必要に応じて他要素用） */
+::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+scrollbar-width: none; /* Firefox */
+scrollbar-color: transparent transparent; /* Firefox */
+
 /* 上のコントロールパネル */
 .control {
   height: 60px;            /* 固定高さ */
