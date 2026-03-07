@@ -12,28 +12,6 @@ import { renderChart } from "../../canvasChart/render";
 import { Chart } from "../../canvasChart/chart";
 import { ChartEngine } from "../../canvasChart/ChartEngine";
 
-const openWebViewWindow = (startBin: number, endBin: number) => {
-  const label = `waveform-${startBin}-${endBin}`;
-
-  const win = new Window(label, {
-    url: `/waveform?start=${startBin}&end=${endBin}`,
-    width: 800,
-    height: 400,
-    title: `waveform ${startBin}-${endBin}`,
-    transparent: false,
-    decorations: true,
-    theme: "dark"
-  });
-
-  win.once("tauri://created", () => {
-    console.log("window created");
-  });
-
-  win.once("tauri://error", (e) => {
-    console.error(e);
-  });
-  return win;
-};
 
 /**
  * Props for the spectrum-only canvas.  All rendering metadata (threshold,
@@ -82,16 +60,6 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
     openWaveformRef.current?.(startBin, endBin, wave);
   };
 
-  // track hover details. two modes:
-  // - single: info for a specific bin
-  // - range: special case during analysis where the cursor is within
-  //   an overlay_bins region; show data for all bins in that range.
-  const [hoverInfo, setHoverInfo] = useState<
-    | { type: "single"; bin: number; value: number; x: number; y: number }
-    | { type: "range"; bins: { bin: number; value: number }[]; x: number; y: number }
-    | null
-  >(null);
-
   // keep ref synced so that subscription callback always sees the latest state
   useEffect(() => {
     fftViewPortRef.current = fftViewPort;
@@ -130,31 +98,12 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
       v.clampOffset(frame.spectrum.length, canvasWidth);
     }
 
-    // pass the clicked bins directly to the renderer so they can be
-    // coloured separately from any backend-provided analysis_bins.
-    // renderFrame(
-    //   ctxRef.current,
-    //   canvasRef.current,
-    //   frame,
-    //   v,
-    //   v,
-    //   false,
-    //   analysisMode,
-    //   clickSelection ? clickSelection.bins : [], // selectedBins
-    //   clickSelection ? clickSelection.center : null
-    // );
+
     engineRef.current?.setSeries(frame.spectrum);
     engineRef.current?.setBins(frame.analysis_bins || []);
     engineRef.current?.setThreshold(frame.threshold || 0);
     engineRef.current?.render();
-    // renderChart(
-    //   ctxRef.current,
-    //   canvasRef.current,
-    //   v,
-    //   frame.spectrum,
-    //   frame.analysis_bins || [],
-    //   frame.threshold || 0
-    // );
+
   }, [analysisMode, clickSelection]);
   useEffect(() => {
     const unsubscribe = frameStore.subscribe((frame) => {
@@ -164,67 +113,6 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
     });
     return unsubscribe;
   }, [draw]);
-
-  // helper used when the user wants to inspect the time-domain waveform
-  // corresponding to a range of frequency bins.  The function opens a
-  // small pop‑up window, draws the current frame's samples for the
-  // requested span, and keeps it up‑to‑date until the window closes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // const openWaveformWindow = useCallback((startBin: number, endBin: number) => {
-  //   const win = openWebViewWindow(startBin, endBin);
-  //   if (!win) return;
-
-  //   // win.document.title = `waveform ${startBin}-${endBin}`;
-  //   // win.document.body.style.margin = "0";
-  //   const canvas = win.document.createElement("canvas");
-  //   canvas.style.width = "100%";
-  //   canvas.style.height = "100%";
-  //   // give it a reasonable drawing size so the ctx.scale calls work
-  //   canvas.width = 800;
-  //   canvas.height = 400;
-  //   win.document.body.appendChild(canvas);
-
-  //   const drawWindow = () => {
-  //     const frame = latestFrame.current;
-  //     if (!frame) return;
-  //     const samples = frame.samples;
-  //     const totalBins = frame.spectrum.length;
-  //     const s = Math.max(0, startBin);
-  //     const e = Math.min(totalBins, endBin);
-  //     if (s >= e) return;
-
-  //     const ctx = canvas.getContext("2d");
-  //     if (!ctx) return;
-  //     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  //     // take the slice of samples matching the bin indices.  there is no
-  //     // exact mapping provided, so we use a 1:1 correspondence.
-  //     const slice = samples.slice(s, e);
-  //     const maxv = Math.max(...slice);
-  //     const minv = Math.min(...slice);
-  //     const range = maxv - minv || 1;
-
-  //     ctx.strokeStyle = "#000";
-  //     ctx.beginPath();
-  //     for (let i = 0; i < slice.length; i++) {
-  //       const x = (i / (slice.length - 1)) * canvas.width;
-  //       const norm = (slice[i] - minv) / range;
-  //       const y = canvas.height * (1 - norm);
-  //       if (i === 0) ctx.moveTo(x, y);
-  //       else ctx.lineTo(x, y);
-  //     }
-  //     ctx.stroke();
-  //   };
-
-  //   // draw now and then subscribe for updates
-  //   drawWindow();
-  //   const unsub = frameStore.subscribe(drawWindow);
-  //   win.addEventListener("beforeunload", () => {
-  //     unsub();
-  //   });
-  // }, []);
-
-  // we don't need to remember previous viewport anymore; always zoom on dblclick
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -489,40 +377,6 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
         style={{ width: "100%", height: "100%" }}
         onWheel={onWheel}
       />
-      {hoverInfo && (
-        <div
-          style={{
-            position: "absolute",
-            top: hoverInfo.y,
-            left: hoverInfo.x,
-            pointerEvents: "none",
-            background: "rgba(0,0,0,0.75)",
-            color: "#fff",
-            padding: "2px 6px",
-            borderRadius: 3,
-            fontSize: 12,
-            whiteSpace: "nowrap",
-            maxHeight: 200,
-            overflowY: "auto",
-          }}
-        >
-          {hoverInfo.type === "single" ? (
-            <>
-              <div>bin: {hoverInfo.bin}</div>
-              <div>value: {hoverInfo.value.toFixed(2)}</div>
-            </>
-          ) : (
-            <>
-              <div>overlay range:</div>
-              {hoverInfo.bins.map((b) => (
-                <div key={b.bin}>
-                  {b.bin}: {b.value.toFixed(2)}
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }

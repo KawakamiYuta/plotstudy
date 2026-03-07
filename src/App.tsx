@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 // import WaveformBarChart from "./WaveformBarChartCanvas";
 import Spectrum from "./plots/components/Plots";
+import SpectrumPlot from "./plots/components/SpectrumPlot";
 import ControlPanel from "./controls/components/ControlPanel";
 import { DetectionTable } from "./tables/components/DetectionTable";
 import WaveformDialog from "./dialog/WaveformDialog";
@@ -26,7 +27,7 @@ export default function App() {
 
       <div className="main">
         <div className="left">
-          <Spectrum />
+          <SpectrumPlot />
         </div>
 
         <div className="right">

@@ -1,4 +1,5 @@
 import { Layer } from "../chart"
+import { roundRect } from "../util/roundRect"
 import { Viewport } from "../viewport"
 
 export class HoverBinLabelLayer implements Layer {
@@ -10,46 +11,64 @@ export class HoverBinLabelLayer implements Layer {
     private mouseY: ()=>number|null
   ) {}
 
-  draw(ctx: CanvasRenderingContext2D) {
+draw(ctx: CanvasRenderingContext2D) {
+  const mx = this.mouseX()
+  const my = this.mouseY()
 
-    const mx = this.mouseX()
-    const my = this.mouseY()
+  if (mx === null || my === null) return
 
-    if (mx === null || my === null) return
+  const bin =
+    Math.round(
+      this.view.offset +
+      mx / this.view.pxPerUnit
+    )
 
-    const bin =
-      Math.round(
-        this.view.offset +
-        mx / this.view.pxPerUnit
-      )
+  if (bin < 0 || bin >= this.data.length) return
 
-    if (bin < 0 || bin >= this.data.length) return
+  const value = this.data[bin]
+const binText = `bin: ${bin}`
+const valText = `val: ${value.toFixed(1)}`
 
-    const value = this.data[bin]
+  ctx.save()
+  ctx.font = "12px monospace"
 
-    const text =
-      `bin:${bin}  val:${value.toFixed(1)}`
+  const padding = 6
+  const lineHeight = 14
+const w = Math.max(
+  ctx.measureText(binText).width,
+  ctx.measureText(valText).width
+) + padding*2
+  const h = lineHeight*2 + padding*2
 
-    ctx.save()
+  let x = mx + 12
+  let y = my + 12
 
-    ctx.font = "12px monospace"
+  // --- キャンバスの右端に収める ---
+  const canvas = ctx.canvas
+  if (x + w > canvas.width) x = canvas.width - w - 4
+  if (y + h > canvas.height) y = canvas.height - h - 4
+  if (x < 0) x = 4
+  if (y < 0) y = 4
 
-    const padding = 6
-    const w =
-      ctx.measureText(text).width +
-      padding*2
-    const h = 18
+  // shadow
+  ctx.shadowColor = "rgba(0,0,0,0.35)"
+  ctx.shadowBlur = 4
+  ctx.shadowOffsetY = 2
 
-    const x = mx + 12
-    const y = my + 12
+  // background
+  ctx.fillStyle = "rgba(30,30,30,0.9)"
+  roundRect(ctx, x, y, w, h, 6)
+  ctx.fill()
 
-    ctx.fillStyle = "white"
-    ctx.fillRect(x,y,w,h)
+  ctx.shadowColor = "transparent"
 
-    ctx.fillStyle = "black"
-    ctx.fillText(text,x+padding,y+13)
+  // text
 
-    ctx.restore()
+  ctx.fillStyle = "#fff"
+//   ctx.fillText(text, x + padding, y + 13)
+ctx.fillText(binText, x + padding, y + padding + lineHeight - 2)
+ctx.fillText(valText, x + padding, y + padding + lineHeight*2 - 2)
+  ctx.restore()
+}
 
-  }
 }

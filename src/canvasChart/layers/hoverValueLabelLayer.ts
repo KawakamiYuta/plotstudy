@@ -1,4 +1,5 @@
 import { Layer } from "../chart"
+import { roundRect } from "../util/roundRect"
 
 export class HoverValueLabelLayer implements Layer {
 
@@ -12,7 +13,6 @@ export class HoverValueLabelLayer implements Layer {
   draw(ctx: CanvasRenderingContext2D) {
 
     const my = this.mouseY()
-
     if (my === null) return
 
     const normalized =
@@ -28,23 +28,42 @@ export class HoverValueLabelLayer implements Layer {
 
     ctx.font = "12px monospace"
 
-    const w =
-      ctx.measureText(text).width + 10
-    const h = 16
+    const padding = 6
+    const textW =
+      ctx.measureText(text).width
+
+    const w = textW + padding*2
+    const h = 18
 
     const x =
-      this.marginLeft - w - 4
+      this.marginLeft - w - 8
 
     const y =
       my - h/2
 
-    ctx.fillStyle = "white"
-    ctx.fillRect(x,y,w,h)
+    // shadow
+    ctx.shadowColor = "rgba(0,0,0,0.35)"
+    ctx.shadowBlur = 4
+    ctx.shadowOffsetY = 2
 
-    ctx.fillStyle = "black"
-    ctx.fillText(text,x+5,y+12)
+    // background
+    ctx.fillStyle = "rgba(30,30,30,0.9)"
+
+    roundRect(ctx,x,y,w,h,4)
+    ctx.fill()
+
+    ctx.shadowColor = "transparent"
+
+    // text
+    ctx.fillStyle = "#fff"
+
+    ctx.fillText(
+      text,
+      x + padding,
+      y + h*0.7
+    )
 
     ctx.restore()
-
   }
+
 }

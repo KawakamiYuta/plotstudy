@@ -46,4 +46,8 @@ export class ChartTransform {
     return (bin - this.view.offset) * this.view.pxPerUnit
   }
 
+  resize(width:number, height:number){
+    this.width = width
+    this.height = height
+  }
 }
