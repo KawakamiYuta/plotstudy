@@ -15,6 +15,7 @@ import { ChartTransform } from "./chartTransform"
 import { Margin } from "./types/margin"
 import { HoverBinLabelLayer } from "./layers/hoverBinLabelLayer"
 import { HoverValueLabelLayer } from "./layers/hoverValueLabelLayer"
+import { ChartClipLayer } from "./layers/chartClipLayer"
 
 export class ChartEngine {
 
@@ -99,6 +100,13 @@ render(){
   ctx.translate(this.margin.left, this.margin.top)
 
   chart.layers.push(
+    new ChartClipLayer(
+      this.transform.chartWidth,
+      this.transform.chartHeight
+    )
+  )
+
+  chart.layers.push(
     new GridLayer(
       this.transform.chartWidth,
       this.transform.chartHeight,
@@ -139,14 +147,6 @@ render(){
   )
 
   chart.layers.push(this.crosshair)
-
-//   chart.layers.push(
-//     new HoverLabelLayer(
-//       this.viewport,
-//       this.series,
-//       ()=>this.crosshair.mouseX,
-//     )
-//   )
 
   chart.layers.push(
     new HoverBinLabelLayer(
