@@ -8,6 +8,10 @@ import { MARGIN } from "../renderer/layout";
 import { Window } from "@tauri-apps/api/window";
 import { WaveformManager } from "./WaveformManager";
 
+import { renderChart } from "../../canvasChart/render";
+import { Chart } from "../../canvasChart/chart";
+import { ChartEngine } from "../../canvasChart/ChartEngine";
+
 const openWebViewWindow = (startBin: number, endBin: number) => {
   const label = `waveform-${startBin}-${endBin}`;
 
@@ -62,15 +66,20 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
   // remember viewport before entering analysis so we can restore it
   const prevViewportRef = useRef<{ offset: number; pxPerUnit: number } | null>(null);
 
+  const engineRef = useRef<ChartEngine | null>(null);
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
 
+  if (!engineRef.current && canvasRef.current) {
+    engineRef.current = new ChartEngine(canvasRef.current);
+  }
+
   const openWaveformRef = useRef<
-    ((s: number, e: number) => void) | null
+    ((s: number, e: number, w: number[]) => void) | null
   >(null);
 
-  const handleOpenWaveform = (startBin: number, endBin: number) => {
-    openWaveformRef.current?.(startBin, endBin);
+  const handleOpenWaveform = (startBin: number, endBin: number, wave: number[]) => {
+    openWaveformRef.current?.(startBin, endBin, wave);
   };
 
   // track hover details. two modes:
@@ -123,17 +132,29 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
 
     // pass the clicked bins directly to the renderer so they can be
     // coloured separately from any backend-provided analysis_bins.
-    renderFrame(
-      ctxRef.current,
-      canvasRef.current,
-      frame,
-      v,
-      v,
-      false,
-      analysisMode,
-      clickSelection ? clickSelection.bins : [], // selectedBins
-      clickSelection ? clickSelection.center : null
-    );
+    // renderFrame(
+    //   ctxRef.current,
+    //   canvasRef.current,
+    //   frame,
+    //   v,
+    //   v,
+    //   false,
+    //   analysisMode,
+    //   clickSelection ? clickSelection.bins : [], // selectedBins
+    //   clickSelection ? clickSelection.center : null
+    // );
+    engineRef.current?.setSeries(frame.spectrum);
+    engineRef.current?.setBins(frame.analysis_bins || []);
+    engineRef.current?.setThreshold(frame.threshold || 0);
+    engineRef.current?.render();
+    // renderChart(
+    //   ctxRef.current,
+    //   canvasRef.current,
+    //   v,
+    //   frame.spectrum,
+    //   frame.analysis_bins || [],
+    //   frame.threshold || 0
+    // );
   }, [analysisMode, clickSelection]);
   useEffect(() => {
     const unsubscribe = frameStore.subscribe((frame) => {
@@ -362,7 +383,7 @@ export default function SpectrumOnly(_props: SpectrumOnlyProps) {
         const end = Math.max(...bins) + 1; // exclusive
         console.log("Opening waveform window for bins", bins);
         // openWaveformWindow(start, end);
-        handleOpenWaveform(start, end);
+        handleOpenWaveform(start, end, latestFrame.current?.samples || []);
         return;
       }
 

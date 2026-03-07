@@ -6,13 +6,14 @@ type Panel = {
   id: number;
   startBin: number;
   endBin: number;
+  wave: number[];
   x: number;
   y: number;
   z: number;
 };
 
 type Props = {
-  registerOpen: (fn: (s: number, e: number) => void) => void;
+  registerOpen: (fn: (s: number, e: number, w: number[]) => void) => void;
 };
 
 export function WaveformManager({ registerOpen }: Props) {
@@ -20,7 +21,7 @@ export function WaveformManager({ registerOpen }: Props) {
   const nextId = useRef(1);
   const nextZ = useRef(1);
 
-  const openPanel = (startBin: number, endBin: number) => {
+  const openPanel = (startBin: number, endBin: number, wave: number[]) => {
     const id = nextId.current++;
     const z = nextZ.current++;
 
@@ -30,6 +31,7 @@ export function WaveformManager({ registerOpen }: Props) {
         id,
         startBin,
         endBin,
+        wave: wave,
         x: 120,
         y: 120,
         z,

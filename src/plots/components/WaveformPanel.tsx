@@ -5,6 +5,7 @@ type Props = {
   id: number;
   startBin: number;
   endBin: number;
+  wave: number[];
   x: number;
   y: number;
   z: number;
@@ -23,7 +24,7 @@ export function WaveformPanel(props: Props) {
         position: "fixed",
         left: props.x,
         top: props.y,
-        width: 600,
+        width: "90%",
         background: "#111",
         border: "1px solid #444",
         zIndex: props.z,
@@ -32,6 +33,8 @@ export function WaveformPanel(props: Props) {
     >
       <div
         style={{
+          width: "100%",
+          height: "100%",
           cursor: "move",
           padding: "4px 8px",
           background: "#222",
@@ -51,6 +54,7 @@ export function WaveformPanel(props: Props) {
       <WaveformCanvas
         startBin={props.startBin}
         endBin={props.endBin}
+        wave={props.wave}
       />
     </div>
   );

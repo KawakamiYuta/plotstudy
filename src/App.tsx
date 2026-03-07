@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Spectrum from "./plots/components/Plots";
 import ControlPanel from "./controls/components/ControlPanel";
 import { DetectionTable } from "./tables/components/DetectionTable";
+import WaveformDialog from "./dialog/WaveformDialog";
 
 import "./App.css";
 // import { ExecutionControl } from "./ExecutionControl";
@@ -14,6 +15,7 @@ export default function App() {
   const [threshold, setThreshold] = useState(20); // used by control panel for config
 
   return (
+    <>
     <div className="app">
       <div className="control">
         <ControlPanel
@@ -32,5 +34,7 @@ export default function App() {
         </div>
       </div>
     </div>
+  <WaveformDialog />
+  </>
   );
 }
