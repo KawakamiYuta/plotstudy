@@ -30,27 +30,29 @@ useEffect(() => {
 
 }, [])
 
-// useEffect(()=>{
+useEffect(()=>{
 
-//   const canvas = canvasRef.current
-//   if(!canvas) return
+  const canvas = canvasRef.current
+  if(!canvas) return
 
-//   const parent = canvas.parentElement
-//   if(!parent) return
+  const parent = canvas.parentElement
+  if(!parent) return
 
-//   const observer =
-//     new ResizeObserver(()=>{
+  console.log("Setting up ResizeObserver for WaveCanvas", parent)
 
-//       engineRef.current?.resize()
-//       engineRef.current?.render()
+  const observer =
+    new ResizeObserver(()=>{
 
-//     })
+      engineRef.current?.resize()
+      engineRef.current?.render()
 
-//   observer.observe(parent)
+    })
 
-//   return ()=>observer.disconnect()
+  observer.observe(parent)
 
-// },[])
+  return ()=>observer.disconnect()
+
+},[])
 
   return (
     <canvas

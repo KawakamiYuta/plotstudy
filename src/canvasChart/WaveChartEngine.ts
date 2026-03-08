@@ -75,11 +75,13 @@ export class WaveChartEngine {
     this.canvas.height = rect.height * dpr
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
+    console.log("Resizing chart to(trans)", this.canvas.clientWidth, this.canvas.clientHeight) 
+
     this.transform.resize(rect.width, rect.height)
     this.crosshair.width = this.transform.chartWidth
     this.crosshair.height = this.transform.chartHeight
 
-    // this.render()
+    this.render()
   }
 
   render() {

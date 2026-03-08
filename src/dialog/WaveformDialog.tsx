@@ -11,8 +11,8 @@ export default function WaveformDialog() {
   const [rect, setRect] = useState({
     x: 200,
     y: 100,
-    width: "60%",
-    height: "60%",
+    width: 800,
+    height: 400,
   })
 
   const dragState = useRef<{x:number,y:number}|null>(null)
@@ -52,40 +52,40 @@ export default function WaveformDialog() {
     window.removeEventListener("mouseup", onDragEnd)
   }
 
-  // function onResizeStart(e: React.MouseEvent) {
+  function onResizeStart(e: React.MouseEvent) {
 
-  //   e.stopPropagation()
+    e.stopPropagation()
 
-  //   resizeState.current = {
-  //     x: e.clientX,
-  //     y: e.clientY,
-  //     width: rect.width,
-  //     height: rect.height
-  //   }
+    resizeState.current = {
+      x: e.clientX,
+      y: e.clientY,
+      width: rect.width,
+      height: rect.height
+    }
 
-  //   window.addEventListener("mousemove", onResizeMove)
-  //   window.addEventListener("mouseup", onResizeEnd)
-  // }
+    window.addEventListener("mousemove", onResizeMove)
+    window.addEventListener("mouseup", onResizeEnd)
+  }
 
-  // function onResizeMove(e: MouseEvent) {
+  function onResizeMove(e: MouseEvent) {
 
-  //   if (!resizeState.current) return
+    if (!resizeState.current) return
 
-  //   const dx = e.clientX - resizeState.current.x
-  //   const dy = e.clientY - resizeState.current.y
+    const dx = e.clientX - resizeState.current.x
+    const dy = e.clientY - resizeState.current.y
 
-  //   setRect(r => ({
-  //     ...r,
-  //     width: resizeState.current!.width + dx,
-  //     height: resizeState.current!.height + dy
-  //   }))
-  // }
+    setRect(r => ({
+      ...r,
+      width: resizeState.current!.width + dx,
+      height: resizeState.current!.height + dy
+    }))
+  }
 
-  // function onResizeEnd() {
-  //   resizeState.current = null
-  //   window.removeEventListener("mousemove", onResizeMove)
-  //   window.removeEventListener("mouseup", onResizeEnd)
-  // }
+  function onResizeEnd() {
+    resizeState.current = null
+    window.removeEventListener("mousemove", onResizeMove)
+    window.removeEventListener("mouseup", onResizeEnd)
+  }
 
   return (
     <div style={overlayStyle}>
@@ -106,11 +106,11 @@ export default function WaveformDialog() {
           <button onClick={close}>x</button>
         </div>
 
-        <div style={{flex:1}}>
+        <div style={{flex:1, minHeight: 0}}>
           <WaveCanvas data={data}/>
         </div>
 
-        {/* <div style={resizeHandle} onMouseDown={onResizeStart} /> */}
+        <div style={resizeHandle} onMouseDown={onResizeStart} />
 
       </div>
 
