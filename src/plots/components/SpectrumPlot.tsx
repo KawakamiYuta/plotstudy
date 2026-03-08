@@ -31,7 +31,15 @@ export default function SpectrumPlot(_props: SpectrumOnlyProps) {
         engine.setSeries(frame.spectrum)
         engine.setBins(frame.analysis_bins || [])
         engine.setThreshold(frame.threshold || 0)
-
+        engine.setHighlightRanges(frame.highlight_range ? 
+          [frame.highlight_range] : [])
+        const bandDict = 
+        frame.overlay_bins_by_center ? Object.fromEntries(
+          Object.entries(frame.overlay_bins_by_center).map(([center, bins]) => [
+            center, { start: Math.min(...bins), end: Math.max(...bins) }
+          ])
+        ) : null
+        if (bandDict) engine.setBandDict(bandDict)
         engine.render()
       })
     return unsubscribe

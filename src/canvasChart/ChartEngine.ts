@@ -1,5 +1,5 @@
 import { Chart } from "./chart"
-import { clampViewport, Viewport } from "./viewport"
+import { clampViewport, resetViewport, Viewport, zoomToRange } from "./viewport"
 
 import { SeriesLayer } from "./layers/seriesLayer"
 import { ChartClipLayer } from "./layers/chartClipLayer"
@@ -12,9 +12,14 @@ import { HoverValueLabelLayer } from "./layers/hoverValueLabelLayer"
 
 import { attachMouseTracker } from "./controllers/attachMouseTracker"
 import { attachZoomPan } from "./controllers/attachZoomPan"
+import { attachHighlightAnalysis } from "./controllers/attachHighlightAnalysis"
 
 import { ChartTransform } from "./chartTransform"
 import { Margin } from "./types/margin"
+import { HighlightRange, HighlightLayer } from "./layers/highlightLayer"
+import { attachBinSelection } from "./controllers/attachBinSelection"
+
+type ChartMode = "spectrum" | "analysis"
 
 export class ChartEngine {
 
@@ -27,10 +32,17 @@ export class ChartEngine {
 
   series: number[] = []
   bins: number[] = []
+  highlightRanges: HighlightRange[] = []
   threshold = 0
+  bandDict: { [key: number]: HighlightRange } | null = null
+
   maxValue = 200
 
   crosshair: CrosshairLayer
+
+  mode: ChartMode = "spectrum"
+  currentAnalysisRange: HighlightRange | null = null
+  selectedBin: number | null = null
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -54,14 +66,46 @@ export class ChartEngine {
 
     attachMouseTracker(canvas, this.crosshair, this.transform, () => this.render())
     attachZoomPan(canvas, this.viewport, this.transform, () => this.render())
+    attachHighlightAnalysis(
+      canvas,
+      this.viewport,
+      this.transform,
+      () => this.highlightRanges,
+      (range) => {
+        console.log("Entering analysis for range:", range)
+        zoomToRange(this.viewport, range.start, range.end, this.transform.chartWidth)
+        this.mode = "analysis"
+        this.currentAnalysisRange = range
+      },
+      () => {
+        console.log("Exiting analysis")
+        this.mode = "spectrum"
+        this.currentAnalysisRange = null
+        this.selectedBin = null
+        resetViewport(this.viewport, this.series.length, this.transform.chartWidth) 
+      },
+      () => this.render()
+    )
+    attachBinSelection(canvas, this.transform, 
+      () => this.mode,
+      () => this.currentAnalysisRange ?? null,
+      (bin) => {
+        this.selectedBin = bin
+      },
+      () => this.render()
+    )
 
-    // 初期サイズ反映
     this.resize()
   }
 
-  setSeries(series: number[]) { this.series = series }
+  setSeries(series: number[]) { 
+    this.series = series
+    resetViewport(this.viewport, series.length, this.transform.chartWidth)
+  }
   setBins(bins: number[]) { this.bins = bins }
   setThreshold(t: number) { this.threshold = t }
+  setHighlightRanges(ranges: HighlightRange[]) { this.highlightRanges = ranges }
+  setBandDict(dict: { [key: number]: HighlightRange }) { this.bandDict = dict }
 
   resize() {
     const rect = this.canvas.getBoundingClientRect()
@@ -82,16 +126,20 @@ export class ChartEngine {
     const ctx = this.ctx
     const canvas = this.canvas
 
-    console.log("virewport", this.viewport)
+    if (this.mode === "spectrum")
+      clampViewport(this.viewport, this.series.length, this.transform.chartWidth);
+    else if (this.mode === "analysis") {
+      clampViewport(this.viewport,
+        this.currentAnalysisRange.end - this.currentAnalysisRange.start,
+        this.transform.chartWidth, this.currentAnalysisRange.start);
 
-    clampViewport(this.viewport, this.series.length, this.transform.chartWidth);
-    console.log("virewport(clamp)", this.viewport)
-
+      if (this.viewport.offset < this.currentAnalysisRange!.start)
+        this.viewport.offset = this.currentAnalysisRange!.start
+    }
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
 
     const chart = new Chart()
 
-    // 内側描画領域に translate
     ctx.save()
     ctx.translate(this.margin.left, this.margin.top)
 
@@ -122,6 +170,7 @@ export class ChartEngine {
         this.maxValue,
         "bar",
         (i, v) => {
+          if (this.selectedBin !== null && i === this.selectedBin) return "#2196f3"
           if (this.bins.includes(i)) return "#8bc34a"
           if (v >= this.threshold) return "#ffeb3b"
           return "#3d3d3d"
@@ -129,14 +178,42 @@ export class ChartEngine {
       )
     )
 
-    chart.layers.push(
-      new ThresholdLayer(
-        this.threshold,
-        this.maxValue,
-        this.transform.chartWidth,
-        this.transform.chartHeight
+    if (this.mode !== "analysis") {
+      for (const range of this.highlightRanges) {
+        chart.layers.push(
+          new HighlightLayer(
+            range.start,
+            range.end,
+            this.viewport,
+            this.transform.chartHeight
+          )
+        )
+      }
+    }
+
+    if(this.mode === "analysis" && this.bandDict && this.selectedBin !== null) {
+      const range = this.bandDict[this.selectedBin]
+      if (range)
+              chart.layers.push(
+          new HighlightLayer(
+            range.start,
+            range.end,
+            this.viewport,
+            this.transform.chartHeight
+          )
+        )
+    }
+
+    if (this.mode === "analysis") {
+      chart.layers.push(
+        new ThresholdLayer(
+          this.threshold,
+          this.maxValue,
+          this.transform.chartWidth,
+          this.transform.chartHeight
+        )
       )
-    )
+    }
 
     chart.layers.push(this.crosshair)
 
@@ -161,7 +238,6 @@ export class ChartEngine {
     chart.draw(ctx)
     ctx.restore()
 
-    // Axisはtranslate外で描画
     const axis = new AxisLayer(
       this.margin.left,
       this.margin.top,
@@ -170,7 +246,7 @@ export class ChartEngine {
       this.transform.chartHeight,
       this.viewport,
       this.maxValue,
-      20,
+      30,
       40
     )
     axis.draw(ctx)

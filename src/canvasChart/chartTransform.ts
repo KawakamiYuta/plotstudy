@@ -36,14 +36,16 @@ export class ChartTransform {
     return y + this.margin.top
   }
 
-  // chart → bin
   chartToBin(x:number){
     return this.view.offset + x / this.view.pxPerUnit
   }
 
-  // bin → chart
   binToChart(bin:number){
     return (bin - this.view.offset) * this.view.pxPerUnit
+  }
+
+  canvasToBin(x: number): number {
+    return Math.floor(this.chartToBin(this.canvasToChartX(x)))
   }
 
   resize(width:number, height:number){

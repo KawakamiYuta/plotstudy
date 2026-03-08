@@ -16,6 +16,7 @@ export class AxisLayer implements Layer {
   ) {}
 
   draw(ctx: CanvasRenderingContext2D) {
+    this.xStep = Math.ceil(computeLabelStep(this.xStep, this.view.pxPerUnit))
 
     ctx.save()
 
@@ -72,11 +73,26 @@ export class AxisLayer implements Layer {
 
       ctx.fillText(
         i.toString(),
-        x,
+        x + this.view.pxPerUnit / 2,
         chartBottom + 4
       )
     }
 
     ctx.restore()
   }
+}
+
+function computeLabelStep(minLabelIntervalPx: number, pxPerUnit:number){
+  const units = minLabelIntervalPx / pxPerUnit
+
+  const pow = Math.pow(10, Math.floor(Math.log10(units)))
+
+  const steps = [1,2,5,10]
+
+  for(const s of steps){
+    const step = s * pow
+    if(step >= units) return step
+  }
+
+  return 10 * pow
 }

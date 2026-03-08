@@ -17,6 +17,8 @@ export class GridLayer implements Layer {
 
     ctx.strokeStyle = "#333"
 
+    ctx.strokeRect(0,0,this.width,this.height)
+
     ctx.beginPath()
 
     // horizontal lines
