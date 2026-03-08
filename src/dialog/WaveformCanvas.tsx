@@ -30,6 +30,28 @@ useEffect(() => {
 
 }, [])
 
+// useEffect(()=>{
+
+//   const canvas = canvasRef.current
+//   if(!canvas) return
+
+//   const parent = canvas.parentElement
+//   if(!parent) return
+
+//   const observer =
+//     new ResizeObserver(()=>{
+
+//       engineRef.current?.resize()
+//       engineRef.current?.render()
+
+//     })
+
+//   observer.observe(parent)
+
+//   return ()=>observer.disconnect()
+
+// },[])
+
   return (
     <canvas
       ref={canvasRef}

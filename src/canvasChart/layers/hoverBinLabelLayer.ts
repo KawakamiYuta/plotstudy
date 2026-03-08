@@ -26,8 +26,8 @@ draw(ctx: CanvasRenderingContext2D) {
   if (bin < 0 || bin >= this.data.length) return
 
   const value = this.data[bin]
-const binText = `bin: ${bin}`
-const valText = `val: ${value.toFixed(1)}`
+const binText = `x: ${bin}`
+const valText = `y: ${value.toFixed(1)}`
 
   ctx.save()
   ctx.font = "12px monospace"

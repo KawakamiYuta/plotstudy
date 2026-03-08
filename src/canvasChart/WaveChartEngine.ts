@@ -40,7 +40,7 @@ export class WaveChartEngine {
 
     this.viewport = { pxPerUnit: 2, offset: 0 }
 
-    this.margin = { left: 60, top: 10, right: 20, bottom: 30 }
+    this.margin = { left: 60, top: 10, right: 20, bottom: 60 }
 
     this.transform = new ChartTransform(
       canvas.width,
@@ -67,6 +67,7 @@ export class WaveChartEngine {
   }
 
   resize() {
+    console.log("Resizing chart to", this.canvas.clientWidth, this.canvas.clientHeight) 
     const rect = this.canvas.getBoundingClientRect()
     const dpr = window.devicePixelRatio || 1
 

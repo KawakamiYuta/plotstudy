@@ -1,8 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { FrameData, frameStore } from "../models/frameStore";
-import { useViewport } from "../hooks/useViewport";
 import { ChartEngine } from "../../canvasChart/ChartEngine";
-import { WaveformManager } from "./WaveformManager";
 import { useWaveformDialogStore } from "../../stores/useWaveformDialogStore";
 
 interface SpectrumOnlyProps {}
@@ -12,7 +10,6 @@ export default function SpectrumPlot(_props: SpectrumOnlyProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const engineRef = useRef<ChartEngine | null>(null)
 
-  // const viewport = useViewport()
   const latestFrame = useRef<FrameData | null>(null)
 
   const {isOpen, open} = useWaveformDialogStore.getState()
@@ -64,24 +61,6 @@ export default function SpectrumPlot(_props: SpectrumOnlyProps) {
 
 },[])
 
-  // const onWheel =
-  //   (e:React.WheelEvent<HTMLCanvasElement>) => {
-
-  //     const frame = latestFrame.current
-  //     const canvas = canvasRef.current
-
-  //     if (!frame || !canvas) return
-
-  //     viewport.onWheel(
-  //       e,
-  //       frame.spectrum.length,
-  //       canvas.clientWidth
-  //     )
-
-  //     engineRef.current?.render()
-
-  // }
-
   return (
 
     <div
@@ -107,7 +86,6 @@ export default function SpectrumPlot(_props: SpectrumOnlyProps) {
           width:"100%",
           height:"100%"
         }}
-        // onWheel={onWheel}
       />
     </div>
   )
