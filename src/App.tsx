@@ -7,6 +7,7 @@ import { DetectionTable } from "./tables/components/DetectionTable";
 import WaveformDialog from "./dialog/WaveformDialog";
 
 import "./App.css";
+import { useWaveformDialogStore } from "./stores/useWaveformDialogStore";
 // import { ExecutionControl } from "./ExecutionControl";
 const data = Array.from({ length: 64 }, (_, i) =>
   Math.pow(Math.sin(i * 0.2), 2) * (Math.random() * 0.5 + 0.5) * 100
@@ -14,7 +15,7 @@ const data = Array.from({ length: 64 }, (_, i) =>
 
 export default function App() {
   const [threshold, setThreshold] = useState(20); // used by control panel for config
-
+  // const isOpen = useWaveformDialogStore((state) => state.isOpen) // just to trigger re-render when dialog opens
   return (
     <>
     <div className="app">
@@ -35,7 +36,7 @@ export default function App() {
         </div>
       </div>
     </div>
-  <WaveformDialog />
+    <WaveformDialog />
   </>
   );
 }

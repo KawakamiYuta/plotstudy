@@ -1,44 +1,13 @@
 import { useEffect, useRef } from "react"
 import { useWaveformDialogStore } from "../stores/useWaveformDialogStore"
-import { drawGrid, drawWaveform } from "./drawWaveform"
+import { useViewport } from "../plots/hooks/useViewport"
+
+import { WaveCanvas } from "./WaveformCanvas"
 
 export default function WaveformDialog() {
-  const {
-    isOpen,
-    data,
-    sampleRate,
-    viewport,
-    close,
-  } = useWaveformDialogStore()
 
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    if (!isOpen || !data) return
-
-    const canvas = canvasRef.current!
-    const ctx = canvas.getContext("2d")!
-
-    const width = canvas.width
-    const height = canvas.height
-
-    drawGrid(
-      ctx,
-      width,
-      height,
-      viewport,
-      sampleRate,
-      data.length
-    )
-
-    drawWaveform(
-      ctx,
-      data,
-      viewport,
-      width,
-      height
-    )
-  }, [isOpen, data, viewport, sampleRate])
+  const { isOpen, data, close }
+    = useWaveformDialogStore()
 
   if (!isOpen || !data) return null
 
@@ -46,11 +15,11 @@ export default function WaveformDialog() {
     <div style={overlayStyle}>
       <div style={dialogStyle}>
         <button onClick={close}>close</button>
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={300}
+
+        <WaveCanvas
+          data={data}
         />
+
       </div>
     </div>
   )
@@ -63,9 +32,15 @@ const overlayStyle: React.CSSProperties = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
+  width: "100%",
+  height: "100%",
 }
 
 const dialogStyle: React.CSSProperties = {
   background: "#111",
   padding: 16,
+  width: "80%",
+  height: "80%",
+  display: "flex",
+  flexDirection: "column",
 }

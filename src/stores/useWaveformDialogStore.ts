@@ -1,45 +1,29 @@
 import { create } from "zustand"
 
-type Viewport = {
-  scaleX: number
-  offsetX: number
-}
-
 type WaveformDialogState = {
   isOpen: boolean
-  data: Float32Array | null
-  sampleRate: number
-  viewport: Viewport
+  data: number[] | null
 
-  open: (data: Float32Array, sampleRate: number) => void
+  open: (data: number[]) => void
   close: () => void
-  setViewport: (v: Partial<Viewport>) => void
 }
 
-export const useWaveformDialogStore = create<WaveformDialogState>(
-  (set) => ({
+export const useWaveformDialogStore =
+  create<WaveformDialogState>((set) => ({
+
     isOpen: false,
     data: null,
-    sampleRate: 48000,
 
-    viewport: {
-      scaleX: 1,
-      offsetX: 0,
-    },
-
-    open: (data, sampleRate) =>
+    open: (data) =>
       set({
         isOpen: true,
-        data,
-        sampleRate,
-        viewport: { scaleX: 1, offsetX: 0 },
+        data
       }),
 
-    close: () => set({ isOpen: false }),
+    close: () =>
+      set({
+        isOpen: false,
+        data: null
+      }),
 
-    setViewport: (v) =>
-      set((state) => ({
-        viewport: { ...state.viewport, ...v },
-      })),
-  })
-)
+  }))

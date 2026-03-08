@@ -12,12 +12,12 @@ export class AxisLayer implements Layer {
     private view: Viewport,
     private maxValue: number,
     private xStep: number,
-    private yStep: number
+    private yStep: number,
+    private yLabelFormat: (value: number) => string = v => v.toString()
   ) {}
 
   draw(ctx: CanvasRenderingContext2D) {
     this.xStep = Math.ceil(computeLabelStep(this.xStep, this.view.pxPerUnit))
-
     ctx.save()
 
     ctx.fillStyle = "white"
@@ -44,7 +44,7 @@ export class AxisLayer implements Layer {
         (this.height / yTicks) * i
 
       ctx.fillText(
-        value.toFixed(0),
+        this.yLabelFormat(value),
         this.marginLeft - 6,
         y
       )

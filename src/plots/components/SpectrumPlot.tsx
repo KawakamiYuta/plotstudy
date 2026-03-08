@@ -3,6 +3,7 @@ import { FrameData, frameStore } from "../models/frameStore";
 import { useViewport } from "../hooks/useViewport";
 import { ChartEngine } from "../../canvasChart/ChartEngine";
 import { WaveformManager } from "./WaveformManager";
+import { useWaveformDialogStore } from "../../stores/useWaveformDialogStore";
 
 interface SpectrumOnlyProps {}
 
@@ -14,8 +15,7 @@ export default function SpectrumPlot(_props: SpectrumOnlyProps) {
   const viewport = useViewport()
   const latestFrame = useRef<FrameData | null>(null)
 
-  const openWaveformRef = useRef<(s:number,e:number,w:number[])=>void>()
-
+  const {isOpen, open} = useWaveformDialogStore.getState()
   useEffect(() => {
     if (!canvasRef.current || engineRef.current) return
     engineRef.current = new ChartEngine(canvasRef.current)
@@ -91,12 +91,15 @@ export default function SpectrumPlot(_props: SpectrumOnlyProps) {
         height:"100%"
       }}
     >
-
-      <WaveformManager
-        registerOpen={(fn)=>{
-          openWaveformRef.current = fn
+      <button className = "execute-open"
+        onClick={() => {
+          if (!isOpen && latestFrame.current) {
+            open(latestFrame.current.samples || []);
+          }
         }}
-      />
+      >
+        Open Waveform
+      </button>
 
       <canvas
         ref={canvasRef}

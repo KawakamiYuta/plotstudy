@@ -49,8 +49,10 @@ export class SeriesLayer implements Layer {
       const y =
         this.height - h
 
-      if (this.colorFn)
+      if (this.colorFn) {
         ctx.fillStyle = this.colorFn(i,v)
+        ctx.strokeStyle = this.colorFn(i,v)
+      }
 
       if (this.type === "bar") {
 
