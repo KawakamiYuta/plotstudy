@@ -1,42 +1,110 @@
-import React, { useState } from "react";
-// import WaveformBarChart from "./WaveformBarChartCanvas";
-import Spectrum from "./plots/components/Plots";
-import SpectrumPlot from "./plots/components/SpectrumPlot";
-import ControlPanel from "./controls/components/ControlPanel";
-import { DetectionTable } from "./tables/components/DetectionTable";
-import WaveformDialog from "./dialog/WaveformDialog";
+import { useRef } from "react";
 
-import "./App.css";
-import { useWaveformDialogStore } from "./stores/useWaveformDialogStore";
-// import { ExecutionControl } from "./ExecutionControl";
-const data = Array.from({ length: 64 }, (_, i) =>
-  Math.pow(Math.sin(i * 0.2), 2) * (Math.random() * 0.5 + 0.5) * 100
-);
+import * as FlexLayout from "flexlayout-react"
+import "flexlayout-react/style/dark.css"
+
+// import './App.css'
+
+import WaveformDialog from "./dialog/WaveformDialog"
+import ControlPanel from "./controls/components/ControlPanel"
+import SpectrumPlot from "./plots/components/SpectrumPlot"
+import { DetectionTable } from "./tables/components/DetectionTable"
+
+const layoutJson = {
+  global: {
+      tabSetEnableDrop: false,
+      tabEnableClose: false,
+      tabSetEnableDrag: false,
+      tabEnableDrag: false,
+      tabEnableRename: false
+  },
+  borders: [],
+  layout: {
+    type: "row",
+    weight: 100,
+    children: [
+      {
+        type: "tabset",
+        weight: 20,
+        children: [
+          {
+            type: "tab",
+            name: "Control",
+            component: "control"
+          }
+        ]
+      },
+      {
+        type: "column",
+        weight: 80,
+        children: [
+          {
+            type: "tabset",
+            weight: 50,
+            children: [
+              {
+                type: "tab",
+                name: "Spectrum",
+                component: "spectrum"
+              }
+            ]
+          },
+          {
+            type: "tabset",
+            weight: 50,
+            children: [
+              {
+                type: "tab",
+                name: "Detections",
+                component: "detection"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
 
 export default function App() {
-  const [threshold, setThreshold] = useState(20); // used by control panel for config
-  // const isOpen = useWaveformDialogStore((state) => state.isOpen) // just to trigger re-render when dialog opens
-  return (
-    <>
-    <div className="app">
-      <div className="control">
-        <ControlPanel
-          threshold={threshold}
-          setThreshold={setThreshold}
-        />
-      </div>
 
+  const model = useRef<FlexLayout.Model>(
+    FlexLayout.Model.fromJson(layoutJson)
+  )
+
+  const factory = (node: FlexLayout.TabNode) => {
+    const component = node.getComponent()
+
+    // return <div className="placeholder">{component}</div>
+    console.log("factory", component) 
+    if (component === "control") return (
+    <div className="control" ><ControlPanel /></div>
+    )
+    if (component === "spectrum") return (
       <div className="main">
         <div className="left">
-          <SpectrumPlot />
+           <SpectrumPlot />
         </div>
-
+      </div>
+    )
+    if (component === "detection") return (
+      <div className="main">
         <div className="right">
           <DetectionTable />
         </div>
       </div>
-    </div>
-    <WaveformDialog />
-  </>
-  );
+    )
+
+    return <div className="placeholder">{component}</div>
+  }
+
+  return (
+    <>
+      <div style={{ height: "100vh" }}>
+        <FlexLayout.Layout model={model.current} factory={factory} />
+      </div>
+
+      <WaveformDialog />
+    </>
+  )
 }

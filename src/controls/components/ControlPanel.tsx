@@ -7,8 +7,9 @@ interface ControlPanelProps {
   setThreshold: (v: number) => void;
 }
 
-export default function ControlPanel({ threshold, setThreshold }: ControlPanelProps) {
+export default function ControlPanel() {
   const [isOpen, setIsOpen] = useState(false);
+  const [threshold, setThreshold] = useState(20);
 
   const handleNextFrame = async () => {
     try {

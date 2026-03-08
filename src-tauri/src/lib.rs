@@ -290,11 +290,11 @@ pub fn run() {
         .setup(|app| {
             let _app_handle = app.handle().clone();
 
-            #[cfg(target_os = "windows")]
-            {
-                let window = app.get_webview_window("main").unwrap();
-                apply_mica(&window);
-            }
+            // #[cfg(target_os = "windows")]
+            // {
+            //     let window = app.get_webview_window("main").unwrap();
+            //     apply_mica(&window);
+            // }
 
             Ok(())
         })

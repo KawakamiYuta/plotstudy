@@ -13,11 +13,9 @@
     "windows": [
       {
         "title": "plotstudy",
-        "width": 800,
-        "height": 600,
-        "theme": "Dark",
-        "transparent": true,
-        "shadow": false
+        "transparent": false,
+        "decorations": true,
+        "resizable": true
       }
     ],
     "security": {
