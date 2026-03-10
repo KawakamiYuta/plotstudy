@@ -15,7 +15,8 @@
         "title": "plotstudy",
         "transparent": false,
         "decorations": true,
-        "resizable": true
+        "resizable": true,
+        "dragDropEnabled": false
       }
     ],
     "security": {
