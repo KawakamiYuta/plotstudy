@@ -6,7 +6,8 @@ import {
 } from "@tanstack/react-table"
 import { useMemo } from "react"
 
-import "../styles/DetectionTable.css"
+// import "../styles/DetectionTable.css"
+import "../../App.css"
 
 export type Detection = {
   frame_id: number

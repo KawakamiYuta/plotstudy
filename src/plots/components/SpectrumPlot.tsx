@@ -75,32 +75,33 @@ useEffect(() => {
 }, [])
   return (
 
-    <div
-      style={{
-        position:"relative",
-        width:"100%",
-        height:"100%"
-      }}
-    >
-      <button className = "execute-open"
-        onClick={() => {
-          if (!isOpen && latestFrame.current) {
-            // open(latestFrame.current.samples || []);
-            addTab({name: "Waveform", component: "waveform", 
-              config: { data: latestFrame.current.samples }})
-          }
-        }}
-      >
-        Open Waveform
-      </button>
+    // <div
+    //   style={{
+    //     position:"relative",
+    //     width:"100%",
+    //     height:"100%"
+    //   }}
+    // >
+    //   <button className = "execute-open"
+    //     onClick={() => {
+    //       if (!isOpen && latestFrame.current) {
+    //         // open(latestFrame.current.samples || []);
+    //         addTab({name: "Waveform", component: "waveform", 
+    //           config: { data: latestFrame.current.samples }})
+    //       }
+    //     }}
+    //   >
+    //     Open Waveform
+    //   </button>
 
       <canvas
         ref={canvasRef}
         style={{
           width:"100%",
-          height:"100%"
+          height:"100%",
+          display: "block"
         }}
       />
-    </div>
+    // </div>
   )
 }

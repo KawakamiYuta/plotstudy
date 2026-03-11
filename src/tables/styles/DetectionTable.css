@@ -1,6 +1,6 @@
 .table-wrapper {
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
   background: #0d141c;
   padding: 8px;
 }
@@ -11,6 +11,7 @@
   font-family: monospace;
   font-size: 13px;
   color: #d7deea;
+  overflow: hidden;
 }
 
 /* header */

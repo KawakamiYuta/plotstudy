@@ -13,6 +13,7 @@
     "windows": [
       {
         "title": "plotstudy",
+        "theme": "Dark",
         "transparent": false,
         "decorations": true,
         "resizable": true,

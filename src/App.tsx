@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-
 import * as FlexLayout from "flexlayout-react"
 // import "flexlayout-react/style/rounded.css"
 import "./flexlayout.css"
@@ -45,10 +44,10 @@ console.log(index)
       <div style={{ height: "100vh" }}>
         <FlexLayout.Layout model={model} factory={factory}
         // onModelChange={(m, a) => window.dispatchEvent(new Event("layout-changed"))}
-        onModelChange={(m, a) => {
-          saveLayout(m)
-          console.log("newmodel", m)
-        }} 
+        // onModelChange={(m, a) => {
+        //   saveLayout(m)
+        //   console.log("newmodel", m)
+        // }} 
         />
       </div>
 
