@@ -1,7 +1,7 @@
 .table-wrapper {
   height: 100%;
   overflow: auto;
-  background: #1e1e1e;
+  background: #0d141c;
   padding: 8px;
 }
 
@@ -10,32 +10,47 @@
   border-collapse: collapse;
   font-family: monospace;
   font-size: 13px;
-  color: #ddd;
+  color: #d7deea;
 }
 
+/* header */
 .detection-table thead {
   position: sticky;
   top: 0;
-  background: #252526;
+  background: #141d29;
+  backdrop-filter: blur(4px);
 }
 
 .detection-table th {
   text-align: left;
   padding: 8px 10px;
   font-weight: 500;
-  border-bottom: 1px solid #333;
-  color: #aaa;
+  border-bottom: 1px solid #1f2b3b;
+  color: #9aa6bb;
 }
 
+/* cells */
 .detection-table td {
   padding: 6px 10px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid #192433;
 }
 
-.detection-table tbody tr:hover {
-  background: #2d2d2d;
-}
-
+/* zebra rows */
 .detection-table tbody tr:nth-child(even) {
-  background: #222;
+  background: #111923;
+}
+
+.detection-table tbody tr:nth-child(odd) {
+  background: #0f1722;
+}
+
+/* hover */
+.detection-table tbody tr:hover {
+  background: #192433;
+  color: #ffffff;
+}
+
+/* subtle row highlight animation */
+.detection-table tbody tr {
+  transition: background 0.15s ease;
 }

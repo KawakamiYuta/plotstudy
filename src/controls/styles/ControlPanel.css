@@ -1,51 +1,76 @@
+/* Control panel */
+
 .control-panel {
   display: flex;
   gap: 12px;
   padding: 10px 20px;
-  background: #252526;
-  border-bottom: 1px solid #333;
+  background: #0f1722;
+  border-bottom: 1px solid #192433;
 }
+
+/* buttons */
 
 .control-panel button {
-  background: #0e639c;
-  border: none;
-  color: white;
+  background: #2b3a50;
+  border: 1px solid #263346;
+  color: #d7deea;
   padding: 6px 14px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
+
+/* hover */
 
 .control-panel button:hover {
-  background: #1177bb;
+  background: #7fb2ff;
+  border-color: #7fb2ff;
+  color: #ffffff;
+  box-shadow: 0 0 6px rgba(127,178,255,0.5);
 }
 
+/* execute open (accent) */
+
 .execute-open {
-  background: #6a1b9a;
+  background: #3a2f5c;
+  border-color: #4c3d78;
 }
 
 .execute-open:hover {
-  background: #8e24aa;
+  background: #8e6cff;
+  border-color: #8e6cff;
+  box-shadow: 0 0 8px rgba(142,108,255,0.6);
 }
 
-/* モーダル */
+
+/* =========================
+   Modal
+========================= */
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(5, 10, 18, 0.75);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .modal {
-  background: #1e1e1e;
+  background: #141d29;
   padding: 24px;
-  border-radius: 8px;
+  border-radius: 10px;
   width: 320px;
-  color: #ddd;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  color: #d7deea;
+  border: 1px solid #263346;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.7);
 }
+
+
+/* =========================
+   Slider
+========================= */
 
 .slider-group {
   display: flex;
@@ -56,14 +81,20 @@
 
 .slider-group input[type="range"] {
   flex: 1;
+  accent-color: #7fb2ff;
 }
 
 .slider-value {
   width: 40px;
   text-align: right;
   font-family: monospace;
-  color: #4fc3f7;
+  color: #7fb2ff;
 }
+
+
+/* =========================
+   Modal Buttons
+========================= */
 
 .modal-buttons {
   display: flex;
@@ -73,12 +104,28 @@
 
 .modal-buttons button {
   padding: 6px 12px;
-  border-radius: 4px;
-  border: none;
+  border-radius: 6px;
+  border: 1px solid #263346;
+  background: #192433;
+  color: #d7deea;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
+.modal-buttons button:hover {
+  background: #263346;
+}
+
+/* execute button */
+
 .modal-buttons .execute {
-  background: #4caf50;
+  background: #2f6f55;
+  border-color: #3e8a6c;
   color: white;
+}
+
+.modal-buttons .execute:hover {
+  background: #39a37a;
+  border-color: #39a37a;
+  box-shadow: 0 0 8px rgba(57,163,122,0.6);
 }

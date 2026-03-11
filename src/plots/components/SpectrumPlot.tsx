@@ -3,10 +3,12 @@ import { FrameData, frameStore } from "../models/frameStore";
 import { ChartEngine } from "../../canvasChart/ChartEngine";
 import { useWaveformDialogStore } from "../../stores/useWaveformDialogStore";
 
+import { useLayoutStore } from "../../stores/useLayoutStore"
+
 interface SpectrumOnlyProps {}
 
 export default function SpectrumPlot(_props: SpectrumOnlyProps) {
-
+  const { addTab } = useLayoutStore()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const engineRef = useRef<ChartEngine | null>(null)
 
@@ -60,7 +62,17 @@ export default function SpectrumPlot(_props: SpectrumOnlyProps) {
   return ()=>observer.disconnect()
 
 },[])
+useEffect(() => {
+  const handler = () => {
+    console.log("layout change")
+    engineRef.current?.resize()
+    engineRef.current?.render()
+  }
 
+  window.addEventListener("layout-changed", handler)
+
+  return () => window.removeEventListener("layout-changed", handler)
+}, [])
   return (
 
     <div
@@ -73,7 +85,9 @@ export default function SpectrumPlot(_props: SpectrumOnlyProps) {
       <button className = "execute-open"
         onClick={() => {
           if (!isOpen && latestFrame.current) {
-            open(latestFrame.current.samples || []);
+            // open(latestFrame.current.samples || []);
+            addTab({name: "Waveform", component: "waveform", 
+              config: { data: latestFrame.current.samples }})
           }
         }}
       >
