@@ -1,10 +1,5 @@
 import ReactDOM from "react-dom/client";
-import App from "./App";
-import "./styles.css";
-
-import { frameStore } from "./plots/models/frameStore";
-
-frameStore.init();
+import App from "./app/App";
 
 const rootElement = document.getElementById("root");
 const root = ReactDOM.createRoot(rootElement!);

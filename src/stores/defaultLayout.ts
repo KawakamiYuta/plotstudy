@@ -42,6 +42,11 @@ export const defaultLayout = {
                     "id": "#25c4fa55-4e38-4d94-b890-8992c710dee5",
                     "name": "Spectrum",
                     "component": "spectrum"
+                  },
+                  {
+                    "type": "tab",
+                    "name": "Waterfall",
+                    "component": "waterfall"
                   }
                 ]
               },
