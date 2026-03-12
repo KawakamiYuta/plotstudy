@@ -96,22 +96,6 @@ body {
 }
 
 /* =====================================================
-   CONTROL PANEL
-===================================================== */
-
-.control-panel {
-
-  display: flex;
-  gap: 12px;
-
-  padding: 10px 20px;
-
-  background: var(--bg-panel);
-  border-bottom: 1px solid var(--border);
-
-}
-
-/* =====================================================
    BUTTONS
 ===================================================== */
 
@@ -176,44 +160,6 @@ button:active {
 
   box-shadow:
     inset 0 2px 6px rgba(0,0,0,0.6);
-
-}
-
-/* accent */
-
-.execute-open {
-
-  background: linear-gradient(
-    135deg,
-    #5c3bff,
-    #8e6cff
-  );
-
-  border: 1px solid #7a5cff;
-
-  color: white;
-
-  font-weight: 600;
-
-  box-shadow:
-    0 0 10px rgba(120,90,255,0.45),
-    0 2px 8px rgba(0,0,0,0.6);
-
-}
-
-.execute-open:hover {
-
-  background: linear-gradient(
-    135deg,
-    #7a5cff,
-    #a892ff
-  );
-
-  border-color: #a892ff;
-
-  box-shadow:
-    0 0 16px rgba(142,108,255,0.7),
-    0 6px 16px rgba(0,0,0,0.7);
 
 }
 

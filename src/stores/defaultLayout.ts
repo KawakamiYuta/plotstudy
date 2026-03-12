@@ -1,6 +1,7 @@
-export const defaultLayout = {
+import { IJsonModel } from "flexlayout-react";
+
+export const defaultLayout: IJsonModel = {
   "global": {
-    tabEnableFloat: true,
   },
   "borders": [],
   "layout": {
@@ -17,6 +18,7 @@ export const defaultLayout = {
             "type": "tabset",
             "id": "#8183ef08-d18b-4bc4-92b4-f40d6618b717",
             "weight": 8.091908091908092,
+            "enableMaximize": false,
             "children": [
               {
                 "type": "tab",

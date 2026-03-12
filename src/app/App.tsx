@@ -21,7 +21,7 @@ export default function App() {
     // return <div className="placeholder">{component}</div>
     console.log("factory", component) 
     if (component === "control") return (
-    <div className="control" ><ControlPanel /></div>
+    <ControlPanel />
     )
     if (component === "spectrum") return (
            <SpectrumPlot />
