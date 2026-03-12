@@ -45,48 +45,50 @@ export default function WaterfallCanvas() {
 
   return (
 
-    <Plot
-      data={[
-        {
-          z: data,
-          type: "heatmap",
-          // colorscale: "Jet",
-          colorscale: "Jet",
-          showscale: false,
+<Plot
+  data={[
+    {
+      z: data,
+      type: "heatmap",
 
-          zmin: 0,
-          zmax: 160
-        }
-      ]}
-      layout={{
-  paper_bgcolor: "#0b1119",   // アプリ背景
-  plot_bgcolor: "#0f1722",    // パネル背景
+      zmin: 0,
+      zmax: 160,
 
-  margin:{l:40,r:10,t:10,b:30},
+      colorscale: "Jet",
 
-  xaxis:{
-    color:"#8fa1b8",
-    gridcolor:"#1d2a3a",
-    zeroline:false
-  },
+      showscale: false
+    }
+  ]}
 
-  yaxis:{
-    color:"#8fa1b8",
-    gridcolor:"#1d2a3a",
-    zeroline:false,
-    visible: false,
-    // autorange:"reversed"
-  }
-      }}
-      style={{
-        width:"100%",
-        height:"100%"
-      }}
-      useResizeHandler={true}
-      config={{
-        displayModeBar:false
-      }}
-    />
+  layout={{
+    margin:{l:0,r:0,t:0,b:0},
 
+    paper_bgcolor:"var(--bg-main)",
+    plot_bgcolor:"var(--bg-panel)",
+
+    xaxis:{
+      visible:false,
+      fixedrange:true
+    },
+
+    yaxis:{
+      visible:false,
+      fixedrange:true
+    }
+  }}
+
+  config={{
+    displayModeBar:false,
+    scrollZoom:false,
+    responsive:true
+  }}
+
+  style={{
+    width:"100%",
+    height:"100%"
+  }}
+
+  useResizeHandler
+/>
   )
 }
