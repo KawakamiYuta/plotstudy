@@ -9,7 +9,7 @@ import { DetectionTable } from "../features/DetectionTable"
 import { WaveCanvas } from "../features/WaveformCanvas";
 
 import { useLayoutStore } from "../stores/useLayoutStore";
-// import WaterfallCanvas from "../features/WaterfallCanvas";
+import WaterfallCanvas from "../features/WaterfallCanvas";
 
 
 
@@ -33,9 +33,9 @@ export default function App() {
       <WaveCanvas data={node.getConfig().data} />
     )
 
-    // if (component === "waterfall") return (
-    //   <WaterfallCanvas />
-    // )
+    if (component === "waterfall") return (
+      <WaterfallCanvas />
+    )
 
     return <div className="placeholder">{component}</div>
   }

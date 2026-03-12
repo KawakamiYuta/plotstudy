@@ -1,91 +1,92 @@
-import React, { useEffect, useRef } from "react";
-import { FrameData, frameStore } from "../stores/frameStore";
-import { WaterfallEngine } from "../engine/canvas-engine/WaterfallEngine";
+import React, { useEffect, useState } from "react"
+import Plot from "react-plotly.js"
+import { FrameData, frameStore } from "../stores/frameStore"
+
+// const MAX_LINES = 200
+// const FFT_SIZE = 1024
+// const EMPTY_LEVEL = 0
+
+// const createInitialData = () =>
+//   Array.from({ length: MAX_LINES }, () =>
+//     new Array(FFT_SIZE).fill(EMPTY_LEVEL)
+//   )
 
 export default function WaterfallCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const engineRef = useRef<WaterfallEngine | null>(null)
 
-  const latestFrame = useRef<FrameData | null>(null)
+  const [data,setData] = useState<number[][]>([])
 
-  useEffect(() => {
-    if (!canvasRef.current || engineRef.current) return
-    engineRef.current = new WaterfallEngine(canvasRef.current)
-  }, [])
+  useEffect(()=>{
 
-  useEffect(() => {
     const unsubscribe =
-      frameStore.subscribe((frame) => {
-        latestFrame.current = frame
-        const engine = engineRef.current
-        if (!engine) return
+      frameStore.subscribe((frame:FrameData)=>{
 
-        console.log("push frame")
-        engine.resize()
-        engine.pushFrame(frame.spectrum)
-        // engine.render()
+        setData(prev => {
+          const MAX_LINES = 100
+          
+          if (prev.length == 0) 
+            return Array.from({length: MAX_LINES }, () => 
+              new Array(frame.spectrum.length).fill(0))
+
+          const next = [...prev, frame.spectrum]
+
+
+
+          if(next.length > MAX_LINES)
+            next.shift()
+
+          return next
+        })
+
       })
+
     return unsubscribe
-  }, [])
 
-//   useEffect(()=>{
+  },[])
 
-//   const canvas = canvasRef.current
-//   if(!canvas) return
-
-//   const observer =
-//     new ResizeObserver(()=>{
-
-//       engineRef.current?.resize()
-//       engineRef.current?.render()
-
-//     })
-
-//   observer.observe(canvas)
-
-//   return ()=>observer.disconnect()
-
-// },[])
-// useEffect(() => {
-//   const handler = () => {
-//     console.log("layout change")
-//     engineRef.current?.resize()
-//     engineRef.current?.render()
-//   }
-
-//   window.addEventListener("layout-changed", handler)
-
-//   return () => window.removeEventListener("layout-changed", handler)
-// }, [])
   return (
 
-    // <div
-    //   style={{
-    //     position:"relative",
-    //     width:"100%",
-    //     height:"100%"
-    //   }}
-    // >
-    //   <button className = "execute-open"
-    //     onClick={() => {
-    //       if (!isOpen && latestFrame.current) {
-    //         // open(latestFrame.current.samples || []);
-    //         addTab({name: "Waveform", component: "waveform", 
-    //           config: { data: latestFrame.current.samples }})
-    //       }
-    //     }}
-    //   >
-    //     Open Waveform
-    //   </button>
+    <Plot
+      data={[
+        {
+          z: data,
+          type: "heatmap",
+          // colorscale: "Jet",
+          colorscale: "Jet",
+          showscale: false,
 
-      <canvas
-        ref={canvasRef}
-        style={{
-          width:"100%",
-          height:"100%",
-          display: "block"
-        }}
-      />
-    // </div>
+          zmin: 0,
+          zmax: 160
+        }
+      ]}
+      layout={{
+  paper_bgcolor: "#0b1119",   // アプリ背景
+  plot_bgcolor: "#0f1722",    // パネル背景
+
+  margin:{l:40,r:10,t:10,b:30},
+
+  xaxis:{
+    color:"#8fa1b8",
+    gridcolor:"#1d2a3a",
+    zeroline:false
+  },
+
+  yaxis:{
+    color:"#8fa1b8",
+    gridcolor:"#1d2a3a",
+    zeroline:false,
+    visible: false,
+    // autorange:"reversed"
+  }
+      }}
+      style={{
+        width:"100%",
+        height:"100%"
+      }}
+      useResizeHandler={true}
+      config={{
+        displayModeBar:false
+      }}
+    />
+
   )
 }
