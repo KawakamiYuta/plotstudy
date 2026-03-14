@@ -1,4 +1,5 @@
-import { listen } from "@tauri-apps/api/event";
+import { TauriRenderStream } from "./tauriRenderListener";
+
 export interface FrameData {
   frame_number: number;
   samples: number[];
@@ -13,54 +14,4 @@ export interface FrameData {
   overlay_bins_by_center?: Record<number, number[]>;
 }
 
-type FrameListener = (frame: FrameData) => void;
-
-class FrameStore {
-  private latestFrame: FrameData | null = null;
-  private listeners: FrameListener[] = [];
-  private running = false;
-  private initialized = false
-
-  private async init() {
-    if(this.initialized) return
-    this.initialized = true
-
-    await listen<FrameData>("wave-frame", (event) => {
-      this.latestFrame = event.payload;
-    });
-
-    this.startRenderLoop();
-  }
-
-subscribe(listener: FrameListener) {
-  this.init()
-  this.listeners.push(listener);
-
-  return () => {
-    this.listeners = this.listeners.filter(l => l !== listener);
-  };
-}
-  private startRenderLoop() {
-    if (this.running) return;
-    this.running = true;
-
-    const loop = () => {
-      if (this.latestFrame) {
-        const frame = this.latestFrame;
-        this.latestFrame = null;
-
-        // 購読者へ通知
-        for (const l of this.listeners) {
-          console.log("Notifying listener with frame", frame);
-          l(frame);
-        }
-      }
-
-      requestAnimationFrame(loop);
-    };
-
-    requestAnimationFrame(loop);
-  }
-}
-
-export const frameStore = new FrameStore();
+export const frameStore = new TauriRenderStream<FrameData>("wave-frame")

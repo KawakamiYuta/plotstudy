@@ -19,6 +19,8 @@ import { Margin } from "./types/margin"
 import { HighlightRange, HighlightLayer } from "./layers/highlightLayer"
 import { attachBinSelection } from "./controllers/attachBinSelection"
 
+import { FrameData } from "../../stores/frameStore"
+
 type ChartMode = "spectrum" | "analysis"
 
 export class ChartEngine {
@@ -82,11 +84,11 @@ export class ChartEngine {
         this.mode = "spectrum"
         this.currentAnalysisRange = null
         this.selectedBin = null
-        resetViewport(this.viewport, this.series.length, this.transform.chartWidth) 
+        resetViewport(this.viewport, this.series.length, this.transform.chartWidth)
       },
       () => this.render()
     )
-    attachBinSelection(canvas, this.transform, 
+    attachBinSelection(canvas, this.transform,
       () => this.mode,
       () => this.currentAnalysisRange ?? null,
       (bin) => {
@@ -98,14 +100,37 @@ export class ChartEngine {
     this.resize()
   }
 
-  setSeries(series: number[]) { 
-    this.series = series
-    resetViewport(this.viewport, series.length, this.transform.chartWidth)
+    setSeries(series: number[]) {
+      this.series = series
+      resetViewport(this.viewport, series.length, this.transform.chartWidth)
+    }
+    setBins(bins: number[]) { this.bins = bins }
+    setThreshold(t: number) { this.threshold = t }
+    setHighlightRanges(ranges: HighlightRange[]) { this.highlightRanges = ranges }
+    setBandDict(dict: { [key: number]: HighlightRange }) { this.bandDict = dict }
+
+  updateFromFrame(frame: FrameData) {
+      this.setSeries(frame.spectrum)
+      this.setBins(frame.analysis_bins || [])
+      this.setThreshold(frame.threshold || 0)
+      this.setHighlightRanges(
+        frame.highlight_range ? [frame.highlight_range] : []
+      )
+
+      if (frame.overlay_bins_by_center) {
+
+        const bandDict = Object.fromEntries(
+          Object.entries(frame.overlay_bins_by_center).map(
+            ([center, bins]) => [
+              center,
+              { start: Math.min(...bins), end: Math.max(...bins) }
+            ]
+          )
+        )
+
+        this.setBandDict(bandDict)
+      }
   }
-  setBins(bins: number[]) { this.bins = bins }
-  setThreshold(t: number) { this.threshold = t }
-  setHighlightRanges(ranges: HighlightRange[]) { this.highlightRanges = ranges }
-  setBandDict(dict: { [key: number]: HighlightRange }) { this.bandDict = dict }
 
   resize() {
     const rect = this.canvas.getBoundingClientRect()
@@ -171,22 +196,22 @@ export class ChartEngine {
         "bar",
         (i, v) => {
           if (this.mode === "analysis") {
-          if (this.selectedBin !== null && i === this.selectedBin) return "#2196f3"
-          if (this.bins.includes(i)) return "#8bc34a"
-          if (v >= this.threshold) return "#ffeb3b"
-          return "#3d3d3d"
+            if (this.selectedBin !== null && i === this.selectedBin) return "#2196f3"
+            if (this.bins.includes(i)) return "#8bc34a"
+            if (v >= this.threshold) return "#ffeb3b"
+            return "#3d3d3d"
           }
           else {
-  const gradient = ctx.createLinearGradient(
-    0,
-    0,
-    0,
-    this.transform.chartHeight
-  );
-  gradient.addColorStop(0.0, "#ff4d4d");
-  gradient.addColorStop(0.5, "#f28e2b");
-  gradient.addColorStop(1.0, "#1f77b4");      
-  return gradient     
+            const gradient = ctx.createLinearGradient(
+              0,
+              0,
+              0,
+              this.transform.chartHeight
+            );
+            gradient.addColorStop(0.0, "#ff4d4d");
+            gradient.addColorStop(0.5, "#f28e2b");
+            gradient.addColorStop(1.0, "#1f77b4");
+            return gradient
           }
         }
       )
@@ -205,10 +230,10 @@ export class ChartEngine {
       }
     }
 
-    if(this.mode === "analysis" && this.bandDict && this.selectedBin !== null) {
+    if (this.mode === "analysis" && this.bandDict && this.selectedBin !== null) {
       const range = this.bandDict[this.selectedBin]
       if (range)
-              chart.layers.push(
+        chart.layers.push(
           new HighlightLayer(
             range.start,
             range.end,
