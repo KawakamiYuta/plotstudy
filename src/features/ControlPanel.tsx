@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { invoke } from "@tauri-apps/api/core"
 
 import { Modal } from "../components/Modal"
@@ -7,58 +7,68 @@ import { Toolbar } from "../components/Toolbar"
 import { StatusBar } from "../components/StatusBar"
 import { StatusLabel } from "../components/StatusLabel"
 
+import { frameStore } from "../stores/frameStore"
+
 import "../styles/ControlPanel.css"
 
-export default function ControlPanel(){
+export default function ControlPanel() {
 
-  const [isOpen,setIsOpen] = useState(false)
-  const [threshold,setThreshold] = useState(20)
+  const [isOpen, setIsOpen] = useState(false)
+  const [threshold, setThreshold] = useState(20)
+  const [frameNo, setFrameNo] = useState(-1)
 
-  const handleNextFrame = async ()=>{
+  const handleNextFrame = async () => {
     await invoke("pull_frame")
   }
 
-  const handleExecute = async ()=>{
-    await invoke("run_external_command",{
-      params:{threshold}
+  const handleExecute = async () => {
+    await invoke("run_external_command", {
+      params: { threshold }
     })
     setIsOpen(false)
   }
-  const frame = 120
-  const detections = 3
-  const fps = 59
+
+  useEffect(() => {
+    const unsubscribe = frameStore.subscribe((frame) => {
+      setFrameNo(frame.frame_number)
+    })
+    return unsubscribe  
+  },[])
+
+  // const frame = 120
+  // const detections = 3
+  // const fps = 59
   return (
     <>
-    <div className="control-panel">
-      <Toolbar>
+      <div className="control-panel">
+        <StatusBar>
 
-        <button onClick={()=>setIsOpen(true)}>
-          実行
-        </button>
+          <StatusLabel label="Frame" value={frameNo} />
 
-        <button onClick={handleNextFrame}>
-          Next Frame
-        </button>
+          {/* <StatusLabel label="Detections" value={detections} />
 
-      </Toolbar>
+          <StatusLabel label="FPS" value={fps} /> */}
 
-      <StatusBar>
+        </StatusBar>
+        <Toolbar>
 
-        <StatusLabel label="Frame" value={frame} />
+          <button onClick={() => setIsOpen(true)}>
+            実行
+          </button>
 
-        <StatusLabel label="Detections" value={detections} />
+          <button onClick={handleNextFrame}>
+            Next Frame
+          </button>
 
-        <StatusLabel label="FPS" value={fps} />
-
-      </StatusBar>
-</div>
+        </Toolbar>
+      </div>
       <Modal
         open={isOpen}
         title="実行パラメータ"
-        onClose={()=>setIsOpen(false)}
+        onClose={() => setIsOpen(false)}
         footer={
           <>
-            <button onClick={()=>setIsOpen(false)}>
+            <button onClick={() => setIsOpen(false)}>
               キャンセル
             </button>
 

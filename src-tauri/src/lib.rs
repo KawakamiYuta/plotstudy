@@ -15,6 +15,13 @@ use signal::generate_pulse;
 use rustfft::FftPlanner;
 const FRAME_SIZE: usize = 2048;
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+fn index() -> &'static AtomicUsize {
+    static INDEX: AtomicUsize = AtomicUsize::new(0);
+    &INDEX
+}
+
 #[allow(dead_code)]
 fn generate_gaussian_pulse_train(
     pulse_width: usize,
@@ -208,8 +215,9 @@ fn send_frame(app: &tauri::AppHandle) {
     let (threshold, highlight_range, analysis_bins, overlay_map) =
         load_frame_meta().unwrap_or((0, None, Vec::new(), None));
 
+    let no = index().fetch_add(1, Ordering::Relaxed);
     let frame = FrameData {
-        frame_number: 0,
+        frame_number: no as u64,
         samples: power.to_vec(),
         spectrum: spectrum,
         threshold,

@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom"
+
 type ModalProps = {
   open: boolean
   title?: string
@@ -16,7 +18,7 @@ export function Modal({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div className="modal-overlay">
       <div className="modal">
 
@@ -33,6 +35,7 @@ export function Modal({
         )}
 
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

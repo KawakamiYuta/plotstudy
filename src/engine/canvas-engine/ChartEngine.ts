@@ -100,36 +100,24 @@ export class ChartEngine {
     this.resize()
   }
 
-    setSeries(series: number[]) {
-      this.series = series
-      resetViewport(this.viewport, series.length, this.transform.chartWidth)
-    }
-    setBins(bins: number[]) { this.bins = bins }
-    setThreshold(t: number) { this.threshold = t }
-    setHighlightRanges(ranges: HighlightRange[]) { this.highlightRanges = ranges }
-    setBandDict(dict: { [key: number]: HighlightRange }) { this.bandDict = dict }
-
   updateFromFrame(frame: FrameData) {
-      this.setSeries(frame.spectrum)
-      this.setBins(frame.analysis_bins || [])
-      this.setThreshold(frame.threshold || 0)
-      this.setHighlightRanges(
-        frame.highlight_range ? [frame.highlight_range] : []
-      )
+    this.series = frame.spectrum
+    resetViewport(this.viewport, frame.spectrum.length, this.transform.chartWidth)
 
-      if (frame.overlay_bins_by_center) {
+    this.bins = frame.analysis_bins || []
+    this.threshold = frame.threshold || 0
+    this.highlightRanges = frame.highlight_range ? [frame.highlight_range] : []
 
-        const bandDict = Object.fromEntries(
-          Object.entries(frame.overlay_bins_by_center).map(
-            ([center, bins]) => [
-              center,
-              { start: Math.min(...bins), end: Math.max(...bins) }
-            ]
-          )
+    if (frame.overlay_bins_by_center) {
+      this.bandDict = Object.fromEntries(
+        Object.entries(frame.overlay_bins_by_center).map(
+          ([center, bins]) => [
+            center,
+            { start: Math.min(...bins), end: Math.max(...bins) }
+          ]
         )
-
-        this.setBandDict(bandDict)
-      }
+      )
+    }
   }
 
   resize() {
