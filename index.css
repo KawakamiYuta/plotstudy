@@ -1,0 +1,111 @@
+/* =========================================
+   MAC STYLE TITLEBAR
+========================================= */
+
+.titlebar {
+
+  height: 32px;
+
+  display: grid;
+  grid-template-columns: 1fr auto;
+
+  align-items: center;
+
+  padding-left: 12px;
+  padding-right: 12px;
+
+  background: linear-gradient(
+    180deg,
+    #2b2b2b,
+    #1c1c1c
+  );
+
+  border-bottom: 1px solid #000;
+
+  user-select: none;
+  backdrop-filter: blur(12px);
+}
+
+/* drag region */
+
+.titlebar [data-tauri-drag-region] {
+  height: 100%;
+}
+
+/* button container */
+
+.controls {
+
+  display: flex;
+  flex-direction: row-reverse; /* 左に並べる */
+  gap: 8px;
+
+  margin-right: auto;
+}
+
+/* buttons */
+
+.controls button {
+
+  width: 12px;
+  height: 12px;
+
+  padding: 0;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(0,0,0,0.35);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+/* hide svg normally */
+
+.controls svg {
+
+  width: 8px;
+  height: 8px;
+
+  opacity: 0;
+}
+
+/* show icon on hover */
+
+.controls button:hover svg {
+
+  opacity: 1;
+}
+
+/* close */
+
+#titlebar-close {
+
+  background: #ff5f57;
+}
+
+/* minimize */
+
+#titlebar-minimize {
+
+  background: #ffbd2e;
+}
+
+/* maximize */
+
+#titlebar-maximize {
+
+  background: #28c840;
+}
+
+/* hover brightness */
+
+.controls button:hover {
+
+  filter: brightness(1.15);
+}

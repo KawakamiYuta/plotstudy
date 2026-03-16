@@ -15,7 +15,7 @@
         "title": "plotstudy",
         "theme": "Dark",
         "transparent": false,
-        "decorations": true,
+        "decorations": false,
         "resizable": true,
         "dragDropEnabled": false
       }

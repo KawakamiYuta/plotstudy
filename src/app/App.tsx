@@ -42,7 +42,8 @@ export default function App() {
 console.log(index)
   return (
     <>
-      <div style={{ height: "100vh" }}>
+      {/* <div style={{ height: "100vh" }}> */}
+      <div>
         <FlexLayout.Layout model={model} factory={factory}
         // onModelChange={(m, a) => window.dispatchEvent(new Event("layout-changed"))}
         // onModelChange={(m, a) => {

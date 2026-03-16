@@ -98,7 +98,7 @@
 */
 .flexlayout__layout {
   left: 0;
-  top: 0;
+  top: 45px;
   right: 0;
   bottom: 0;
   position: absolute;
@@ -749,5 +749,3 @@
 .flexlayout__tab_button_textbox {
   border: none;
 }
-
-/*# sourceMappingURL=underline.css.map */
