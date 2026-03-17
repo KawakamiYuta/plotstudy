@@ -1,0 +1,115 @@
+/* =========================
+   RADAR TABLE UI
+========================= */
+
+.table-wrapper {
+  height: 100%;
+  overflow: hidden;
+  background: #08130e;
+  padding: 8px;
+
+  /* ほんのりグリッド（安全・非破壊） */
+  background-image:
+    linear-gradient(rgba(53,255,156,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53,255,156,0.05) 1px, transparent 1px);
+
+  background-size: 40px 40px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: #b7f7c8;
+  overflow: hidden;
+}
+
+/* ===== ヘッダー ===== */
+.data-table thead {
+  position: sticky;
+  top: 0;
+  background: #0d1f17;
+  backdrop-filter: blur(4px);
+}
+
+.data-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-weight: 600;
+
+  border-bottom: 1px solid rgba(53,255,156,0.25);
+
+  color: #7ed9a6;
+
+  /* 軍用感 */
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-size: 11px;
+}
+
+/* ===== セル ===== */
+.data-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(53,255,156,0.08);
+}
+
+/* ===== 行 ===== */
+
+/* zebra */
+.data-table tbody tr:nth-child(even) {
+  background: #07110c;
+}
+
+.data-table tbody tr:nth-child(odd) {
+  background: #0a1711;
+}
+
+/* hover（レーダー反応） */
+.data-table tbody tr:hover {
+  background: rgba(53,255,156,0.12);
+  color: #35ff9c;
+
+  box-shadow:
+    inset 0 0 6px rgba(53,255,156,0.15);
+}
+
+/* ===== アニメーション ===== */
+.data-table tbody tr {
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+}
+
+/* ===== 数値強調（任意） ===== */
+.data-table td.numeric {
+  color: #8affc1;
+}
+
+/* ===== スクロール（合うように） ===== */
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #163828;
+}
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #35ff9c;
+}
+
+/* .table-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background: linear-gradient(
+    rgba(53,255,156,0.06),
+    transparent
+  );
+
+  animation: radar-scan 6s linear infinite;
+}
+
+@keyframes radar-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+} */

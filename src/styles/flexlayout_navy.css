@@ -1,107 +1,104 @@
 .flexlayout__layout {
 
-  /* ===== ベース ===== */
-  --color-text: #e6edf3;
-  --color-background: #0b0f14;
-  --color-base: #0b0f14;
+  /* night sky base */
+  --color-text: #d7deea;
+  --color-background: #0b1118;
+  --color-base: #0b1118;
 
-  /* ===== レイヤー（ニュートラル） ===== */
-  --color-1: #11161c;
-  --color-2: #161b22;
-  --color-3: #1c2128;
-  --color-4: #21262d;
-  --color-5: #262c34;
-  --color-6: #2d333b;
+  /* matte layers (deep navy greys) */
+  --color-1: #0f1722;
+  --color-2: #141d29;
+  --color-3: #192433;
+  --color-4: #1f2b3b;
+  --color-5: #263346;
+  --color-6: #2d3c52;
 
-  /* ===== アクセント（控えめ） ===== */
-  --accent: #b61f1a; /* ← 緑控えめ */
-  /* --accent: #d4af37; ← ゴールドにするならこっち */
+  /* accent (moonlight blue) */
+  --color-drag1: #7fb2ff;
+  --color-drag2: #7fb2ff;
+  --color-drag1-background: rgba(127,178,255,0.15);
+  --color-drag2-background: rgba(127,178,255,0.15);
 
-  --color-drag1: var(--accent);
-  --color-drag2: var(--accent);
+  --font-size: medium;
+  --font-family: Roboto, Arial, sans-serif;
 
-  --color-drag1-background: rgba(255,255,255,0.05);
-  --color-drag2-background: rgba(255,255,255,0.05);
+  --color-overflow: #9aa6bb;
+  --color-icon: #9aa6bb;
 
-  /* ===== フォント ===== */
-  --font-size: 13px;
-  --font-family: "Inter", "JetBrains Mono", sans-serif;
+  /* tabsets */
+  --color-tabset-background: #0f1722;
+  --color-tabset-background-selected: #0f1722;
+  --color-tabset-background-maximized: #0f1722;
 
-  --color-overflow: #9da7b3;
-  --color-icon: #9da7b3;
+  --color-tabset-divider-line: #192433;
+  --color-tabset-header-background: #0b1118;
+  --color-tabset-header: #d7deea;
 
-  /* ===== タブセット ===== */
-  --color-tabset-background: #0f1419;
-  --color-tabset-header-background: #0b0f14;
-  --color-tabset-header: #c9d1d9;
+  /* borders */
+  --color-border-tab-content: #0b1118;
+  --color-border-background: #0b1118;
+  --color-border-divider-line: #192433;
 
-  --color-tabset-divider-line: #1f2630;
+  /* tab content */
+  --color-tab-content: #0d141c;
 
-  /* ===== コンテンツ ===== */
-  --color-tab-content: #0f1419;
-
-  /* ===== タブ ===== */
+  /* selected tab */
   --color-tab-selected: #ffffff;
-  --color-tab-selected-background: #1c2128;
+  --color-tab-selected-background: #192433;
 
-  --color-tab-unselected: #8b949e;
-  --color-tab-unselected-background: #11161c;
+  /* unselected tab */
+  --color-tab-unselected: #8893a8;
+  --color-tab-unselected-background: #141d29;
 
   /* textbox */
-  --color-tab-textbox: #e6edf3;
-  --color-tab-textbox-background: #1c2128;
+  --color-tab-textbox: #d7deea;
+  --color-tab-textbox-background: #192433;
 
   /* border tabs */
-  --color-border-tab-selected: var(--accent);
-  --color-border-tab-selected-background: #1c2128;
+  --color-border-tab-selected: #7fb2ff;
+  --color-border-tab-selected-background: #192433;
 
-  --color-border-tab-unselected: #8b949e;
-  --color-border-tab-unselected-background: #11161c;
+  --color-border-tab-unselected: #8893a8;
+  --color-border-tab-unselected-background: #141d29;
 
-  /* ===== splitter ===== */
-  --color-splitter: rgba(255,255,255,0.05);
-  --color-splitter-hover: rgba(255,255,255,0.15);
-  --color-splitter-drag: var(--accent);
+  /* splitter */
+  /* --color-splitter: #0b1118; */
+  --color-splitter: #0d0c0f4d;
+  --color-splitter-hover: #7fb2ff;
+  --color-splitter-drag: #7fb2ff;
 
-  /* ===== drag ===== */
-  --color-drag-rect-border: var(--accent);
-  --color-drag-rect-background: #1c2128;
+  /* drag rect */
+  --color-drag-rect-border: #7fb2ff;
+  --color-drag-rect-background: #1f2b3b;
   --color-drag-rect: #ffffff;
 
-  /* ===== popup ===== */
-  --color-popup-border: #2d333b;
-  --color-popup-unselected: #c9d1d9;
-  --color-popup-unselected-background: #161b22;
+  /* popup */
+  --color-popup-border: #263346;
+  --color-popup-unselected: #d7deea;
+  --color-popup-unselected-background: #141d29;
 
   --color-popup-selected: #ffffff;
-  --color-popup-selected-background: #21262d;
+  --color-popup-selected-background: #192433;
 
-  /* ===== edge ===== */
-  --color-edge-marker: var(--accent);
-  --color-edge-icon: #c9d1d9;
+  /* edge markers */
+  --color-edge-marker: #7fb2ff;
+  --color-edge-icon: #d7deea;
 
-  /* ===== scroll ===== */
-  --color-mini-scroll-indicator: rgba(255,255,255,0.15);
-  --color-mini-scroll-indicator-hovered: rgba(255,255,255,0.3);
+  /* scroll */
+  --color-mini-scroll-indicator: rgba(127,178,255,0.35);
+  --color-mini-scroll-indicator-hovered: rgba(127,178,255,0.55);
 
   --size-mini-scroll-indicator: 4px;
 
-  --color-toolbar-button-hover: rgba(255,255,255,0.05);
-
-  /* ===== underline ===== */
-  --underline_height: 2px;
-  --color-underline: var(--accent);
-
-  letter-spacing: 0.2px;
+  --color-toolbar-button-hover: #192433;
 }
-
 
 /*
     base classes
 */
 .flexlayout__layout {
   left: 0;
-  top: 33px;
+  top: 45px;
   right: 0;
   bottom: 0;
   position: absolute;

@@ -1,0 +1,55 @@
+.table-wrapper {
+  height: 100%;
+  overflow: hidden;
+  background: #0d141c;
+  padding: 8px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 13px;
+  color: #d7deea;
+  overflow: hidden;
+}
+
+.data-table thead {
+  position: sticky;
+  top: 0;
+  background: #141d29;
+  backdrop-filter: blur(4px);
+}
+
+.data-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-weight: 500;
+  border-bottom: 1px solid #1f2b3b;
+  color: #9aa6bb;
+}
+
+.data-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #192433;
+}
+
+/* zebra rows */
+.data-table tbody tr:nth-child(even) {
+  background: #111923;
+}
+
+.data-table tbody tr:nth-child(odd) {
+  background: #0f1722;
+}
+
+/* hover */
+.data-table tbody tr:hover {
+  background: #192433;
+  color: #ffffff;
+}
+
+/* subtle row highlight animation */
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}

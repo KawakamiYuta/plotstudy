@@ -1,107 +1,111 @@
 .flexlayout__layout {
 
-  /* ===== ベース ===== */
-  --color-text: #e6edf3;
-  --color-background: #0b0f14;
-  --color-base: #0b0f14;
+  /* ===== 基本カラー（レーダー） ===== */
+  --color-text: #b7f7c8;
+  --color-background: #050b08;
+  --color-base: #050b08;
 
-  /* ===== レイヤー（ニュートラル） ===== */
-  --color-1: #11161c;
-  --color-2: #161b22;
-  --color-3: #1c2128;
-  --color-4: #21262d;
-  --color-5: #262c34;
-  --color-6: #2d333b;
+  /* レイヤー（深いグリーン） */
+  --color-1: #07110c;
+  --color-2: #0a1711;
+  --color-3: #0d1f17;
+  --color-4: #11281d;
+  --color-5: #153222;
+  --color-6: #1a3d29;
 
-  /* ===== アクセント（控えめ） ===== */
-  --accent: #b61f1a; /* ← 緑控えめ */
-  /* --accent: #d4af37; ← ゴールドにするならこっち */
+  /* アクセント（レーダーグリーン） */
+  --color-drag1: #35ff9c;
+  --color-drag2: #35ff9c;
+  --color-drag1-background: rgba(53,255,156,0.15);
+  --color-drag2-background: rgba(53,255,156,0.15);
 
-  --color-drag1: var(--accent);
-  --color-drag2: var(--accent);
-
-  --color-drag1-background: rgba(255,255,255,0.05);
-  --color-drag2-background: rgba(255,255,255,0.05);
-
-  /* ===== フォント ===== */
+  /* フォント（軍用感） */
   --font-size: 13px;
-  --font-family: "Inter", "JetBrains Mono", sans-serif;
+  --font-family: "JetBrains Mono", "Consolas", monospace;
 
-  --color-overflow: #9da7b3;
-  --color-icon: #9da7b3;
+  --color-overflow: #7ed9a6;
+  --color-icon: #7ed9a6;
 
   /* ===== タブセット ===== */
-  --color-tabset-background: #0f1419;
-  --color-tabset-header-background: #0b0f14;
-  --color-tabset-header: #c9d1d9;
+  --color-tabset-background: #07110c;
+  --color-tabset-background-selected: #07110c;
+  --color-tabset-background-maximized: #07110c;
 
-  --color-tabset-divider-line: #1f2630;
+  --color-tabset-divider-line: #0d1f17;
+  --color-tabset-header-background: #050b08;
+  --color-tabset-header: #b7f7c8;
+
+  /* ===== ボーダー ===== */
+  --color-border-tab-content: #050b08;
+  --color-border-background: #050b08;
+  --color-border-divider-line: #0d1f17;
 
   /* ===== コンテンツ ===== */
-  --color-tab-content: #0f1419;
+  --color-tab-content: #08130e;
 
-  /* ===== タブ ===== */
-  --color-tab-selected: #ffffff;
-  --color-tab-selected-background: #1c2128;
+  /* ===== タブ選択 ===== */
+  --color-tab-selected: #35ff9c;
+  --color-tab-selected-background: #0d1f17;
 
-  --color-tab-unselected: #8b949e;
-  --color-tab-unselected-background: #11161c;
+  /* 未選択 */
+  --color-tab-unselected: #5c8f73;
+  --color-tab-unselected-background: #0a1711;
 
   /* textbox */
-  --color-tab-textbox: #e6edf3;
-  --color-tab-textbox-background: #1c2128;
+  --color-tab-textbox: #b7f7c8;
+  --color-tab-textbox-background: #0d1f17;
 
   /* border tabs */
-  --color-border-tab-selected: var(--accent);
-  --color-border-tab-selected-background: #1c2128;
+  --color-border-tab-selected: #35ff9c;
+  --color-border-tab-selected-background: #0d1f17;
 
-  --color-border-tab-unselected: #8b949e;
-  --color-border-tab-unselected-background: #11161c;
+  --color-border-tab-unselected: #5c8f73;
+  --color-border-tab-unselected-background: #0a1711;
 
   /* ===== splitter ===== */
-  --color-splitter: rgba(255,255,255,0.05);
-  --color-splitter-hover: rgba(255,255,255,0.15);
-  --color-splitter-drag: var(--accent);
+  --color-splitter: rgba(20, 60, 40, 0.4);
+  --color-splitter-hover: #35ff9c;
+  --color-splitter-drag: #35ff9c;
 
   /* ===== drag ===== */
-  --color-drag-rect-border: var(--accent);
-  --color-drag-rect-background: #1c2128;
+  --color-drag-rect-border: #35ff9c;
+  --color-drag-rect-background: #11281d;
   --color-drag-rect: #ffffff;
 
   /* ===== popup ===== */
-  --color-popup-border: #2d333b;
-  --color-popup-unselected: #c9d1d9;
-  --color-popup-unselected-background: #161b22;
+  --color-popup-border: #153222;
+  --color-popup-unselected: #b7f7c8;
+  --color-popup-unselected-background: #0a1711;
 
-  --color-popup-selected: #ffffff;
-  --color-popup-selected-background: #21262d;
+  --color-popup-selected: #35ff9c;
+  --color-popup-selected-background: #0d1f17;
 
   /* ===== edge ===== */
-  --color-edge-marker: var(--accent);
-  --color-edge-icon: #c9d1d9;
+  --color-edge-marker: #35ff9c;
+  --color-edge-icon: #b7f7c8;
 
   /* ===== scroll ===== */
-  --color-mini-scroll-indicator: rgba(255,255,255,0.15);
-  --color-mini-scroll-indicator-hovered: rgba(255,255,255,0.3);
+  --color-mini-scroll-indicator: rgba(53,255,156,0.3);
+  --color-mini-scroll-indicator-hovered: rgba(53,255,156,0.6);
 
   --size-mini-scroll-indicator: 4px;
 
-  --color-toolbar-button-hover: rgba(255,255,255,0.05);
+  --color-toolbar-button-hover: #0d1f17;
 
-  /* ===== underline ===== */
+  /* ===== underline（壊れ防止） ===== */
   --underline_height: 2px;
-  --color-underline: var(--accent);
+  --color-underline: #35ff9c;
 
-  letter-spacing: 0.2px;
+  /* ===== 微調整 ===== */
+  letter-spacing: 0.3px;
 }
-
 
 /*
     base classes
 */
 .flexlayout__layout {
   left: 0;
-  top: 33px;
+  top: 45px;
   right: 0;
   bottom: 0;
   position: absolute;
@@ -751,4 +755,60 @@
 }
 .flexlayout__tab_button_textbox {
   border: none;
+}
+
+/* =====================================================
+   FIXED RADAR PATCH（安定版）
+===================================================== */
+
+.flexlayout__layout {
+
+  /* 必須（これがないと壊れる） */
+  --underline_height: 2px;
+  --color-underline: #35ff9c;
+
+  /* radar green */
+  --color-text: #b7f7c8;
+  --color-tab-selected: #35ff9c;
+  --color-border-tab-selected: #35ff9c;
+
+  --color-drag1: #35ff9c;
+  --color-drag2: #35ff9c;
+
+  --color-drag1-background: rgba(53,255,156,0.15);
+  --color-drag2-background: rgba(53,255,156,0.15);
+
+  --color-edge-marker: #35ff9c;
+
+  --color-mini-scroll-indicator: rgba(53,255,156,0.3);
+  --color-mini-scroll-indicator-hovered: rgba(53,255,156,0.6);
+
+  /* font */
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  letter-spacing: 0.3px;
+}
+
+/* 選択タブ */
+.flexlayout__tab_button--selected {
+  border-bottom: var(--underline_height) solid var(--color-underline);
+  box-shadow: 0 0 4px rgba(53,255,156,0.25);
+}
+
+/* hover */
+.flexlayout__tab_button:hover,
+.flexlayout__border_button:hover {
+  color: #35ff9c;
+}
+
+/* splitter */
+.flexlayout__splitter:hover {
+  background-color: rgba(53,255,156,0.2);
+}
+
+/* scrollbar */
+::-webkit-scrollbar-thumb {
+  background: #163828;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #35ff9c;
 }

@@ -1,0 +1,165 @@
+/* =========================
+   RADAR CONTROL PANEL
+========================= */
+
+.control-panel {
+
+  display: flex;
+  gap: 12px;
+  padding: 10px 20px;
+
+  background: #07110c;
+
+  /* 薄いグリッド */
+  background-image:
+    linear-gradient(rgba(53,255,156,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53,255,156,0.04) 1px, transparent 1px);
+
+  background-size: 40px 40px;
+
+  border-bottom: 1px solid rgba(53,255,156,0.15);
+}
+
+/* ===== toolbar ===== */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* ===== status ===== */
+.status-bar {
+  display: flex;
+  gap: 20px;
+  margin-right: auto;
+}
+
+/* ===== ラベル ===== */
+.status-label {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 10px;
+
+  background: #0a1711;
+  border: 1px solid rgba(53,255,156,0.2);
+  border-radius: 4px;
+
+  /* 微発光 */
+  box-shadow: inset 0 0 6px rgba(53,255,156,0.08);
+}
+
+/* ラベル名 */
+.status-label-name {
+  font-size: 10px;
+  color: #6fa98a;
+
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* 値（重要） */
+.status-label-value {
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #35ff9c;
+
+  /* レーダーっぽい発光 */
+  text-shadow: 0 0 6px rgba(53,255,156,0.6);
+}
+
+/* ===== 状態別カラー（超重要） ===== */
+
+/* 正常 */
+.status-ok .status-label-value {
+  color: #35ff9c;
+}
+
+/* 警告 */
+.status-warn .status-label-value {
+  color: #ffd95e;
+  text-shadow: 0 0 6px rgba(255,217,94,0.6);
+}
+
+/* 危険 */
+.status-danger .status-label-value {
+  color: #ff5e5e;
+  text-shadow: 0 0 6px rgba(255,94,94,0.7);
+}
+
+/* ===== ボタン（もしあるなら） ===== */
+.toolbar button {
+  background: #0a1711;
+  border: 1px solid rgba(53,255,156,0.25);
+  color: #7ed9a6;
+
+  padding: 4px 10px;
+  border-radius: 4px;
+
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(53,255,156,0.6);
+}
+
+/* hover */
+.toolbar button:hover {
+  color: #35ff9c;
+  border-color: #35ff9c;
+
+  box-shadow: 0 0 6px rgba(53,255,156,0.4);
+}
+
+/* active */
+.toolbar button:active {
+  background: rgba(53,255,156,0.15);
+}
+
+/* =========================
+   TOOLBAR = FlexLayout風
+========================= */
+
+.toolbar button {
+
+  background: transparent;
+
+  border: 1px solid transparent;
+
+  color: var(--color-icon);
+
+  padding: 3px 8px;
+  border-radius: 3px;
+
+  font-family: var(--font-mono);
+  font-size: 12px;
+
+  cursor: pointer;
+
+  transition: all 0.15s ease;
+    text-shadow: 0 0 6px rgba(53,255,156,0.6);
+
+  /* 微発光 */
+  box-shadow: inset 0 0 6px rgba(53,255,156,0.08);
+}
+
+/* hover = FlexLayoutと同じ挙動 */
+.toolbar button:hover {
+
+  background: var(--color-toolbar-button-hover);
+
+  color: var(--color-tab-selected);
+}
+
+/* active（クリック中） */
+.toolbar button:active {
+
+  background: var(--color-3);
+}
+
+/* フォーカス（キーボード操作用） */
+.toolbar button:focus {
+  outline: 1px solid var(--color-tab-selected);
+  outline-offset: 1px;
+}

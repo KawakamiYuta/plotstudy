@@ -1,0 +1,361 @@
+/* =====================================================
+   MILITARY RADAR THEME
+   Dark / Tactical / Green Phosphor
+===================================================== */
+
+:root {
+
+  /* ===== 背景 ===== */
+  --bg-main: #05080c;
+  /* --bg-panel: #b8c2c2; */
+  --bg-panel: transparent;
+  --bg-panel-2: #0d141b;
+
+  /* ===== 境界 ===== */
+  --border: #13202c;
+  --border-strong: rgba(53,255,156,0.25);
+
+  /* ===== テキスト ===== */
+  --text-main: #b7f7c8;
+  --text-dim: #5d8a73;
+  --text-bright: #35ff9c;
+
+  /* ===== アクセント ===== */
+  --accent-green: #35ff9c;
+  --accent-green-dim: #1fa76a;
+  --accent-green-soft: rgba(53,255,156,0.12);
+
+  /* ===== 状態色 ===== */
+  --status-ok: #35ff9c;
+  --status-warn: #ffd95e;
+  --status-danger: #ff5e5e;
+
+  /* ===== 発光 ===== */
+  --glow-green: rgba(53,255,156,0.25);
+  --glow-strong: rgba(53,255,156,0.5);
+
+  /* ===== グリッド ===== */
+  --grid-line: rgba(53,255,156,0.05);
+  --grid-size: 40px;
+
+  /* ===== タイポ ===== */
+  --font-mono: "JetBrains Mono", "Consolas", monospace;
+
+  /* ===== トランジション ===== */
+  --anim-fast: 0.15s ease;
+  --anim-mid: 0.25s ease;
+
+}
+/* =====================================================
+   GLOBAL
+===================================================== */
+
+body {
+  margin: 0;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  letter-spacing: 0.4px;
+}
+
+/* subtle CRT vignette */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at center,
+    transparent 60%,
+    rgba(0,0,0,0.6) 100%
+  );
+}
+
+/* =====================================================
+   PANEL / LAYOUT
+===================================================== */
+
+.flexlayout__layout {
+  --color-background: var(--bg-main);
+  --color-1: var(--bg-panel);
+  --color-2: var(--bg-panel-2);
+  --color-border: var(--border);
+}
+
+/* panels */
+.flexlayout__tabset_header,
+.table-wrapper,
+.modal {
+
+  background: var(--bg-panel);
+
+  border: 1px solid var(--border);
+
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.6),
+    0 0 12px rgba(0,0,0,0.8);
+}
+
+/* =====================================================
+   TABS
+===================================================== */
+
+.flexlayout__tab {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.flexlayout__tabset_header {
+  border-bottom: 1px solid var(--border);
+}
+
+/* selected tab */
+.flexlayout__tab_button--selected {
+
+  color: var(--accent-green);
+
+  background: linear-gradient(
+    180deg,
+    #0f1a14,
+    #0a120d
+  );
+
+  border-bottom: 2px solid var(--accent-green);
+
+  box-shadow:
+    0 0 6px var(--glow-green);
+}
+
+/* hover */
+.flexlayout__tab_button:hover {
+  color: var(--accent-green);
+  background: #0e1913;
+}
+
+/* =====================================================
+   BUTTON (TACTICAL)
+===================================================== */
+
+button {
+
+  background: linear-gradient(
+    180deg,
+    #0f1f18,
+    #0a1410
+  );
+
+  border: 1px solid #1c3a2b;
+
+  color: #35ff9c;
+
+  padding: 6px 14px;
+
+  border-radius: 4px;
+
+  font-size: 12px;
+
+  cursor: pointer;
+
+  transition: all 0.15s ease;
+
+    text-shadow: 0 0 6px rgba(53,255,156,0.6);
+
+  /* 微発光 */
+  box-shadow: inset 0 0 6px rgba(39, 151, 97, 0.08);
+}
+
+button:hover {
+
+  color: var(--accent-green);
+
+  border-color: var(--accent-green);
+
+  box-shadow:
+    0 0 6px var(--glow-green);
+}
+
+button:active {
+
+  background: #08100c;
+
+  box-shadow:
+    inset 0 0 8px rgba(0,0,0,0.8);
+}
+
+/* =====================================================
+   TABLE (RADAR STYLE)
+===================================================== */
+
+.table-wrapper {
+  height: 100%;
+  overflow: auto;
+  padding: 6px;
+}
+
+.detection-table {
+
+  width: 100%;
+  border-collapse: collapse;
+
+  font-family: var(--font-mono);
+  font-size: 12px;
+
+  color: var(--text-main);
+}
+
+/* header */
+
+.detection-table thead {
+
+  position: sticky;
+  top: 0;
+
+  background: var(--bg-panel-2);
+}
+
+/* header cells */
+
+.detection-table th {
+
+  padding: 6px 8px;
+
+  text-align: left;
+
+  color: var(--text-dim);
+
+  border-bottom: 1px solid var(--border);
+}
+
+/* body cells */
+
+.detection-table td {
+
+  padding: 5px 8px;
+
+  border-bottom: 1px solid #0f1c26;
+}
+
+/* scanline effect */
+
+.detection-table tbody tr {
+
+  background-image: linear-gradient(
+    to bottom,
+    rgba(53,255,156,0.05) 1px,
+    transparent 1px
+  );
+
+  background-size: 100% 4px;
+}
+
+/* hover */
+
+.detection-table tbody tr:hover {
+
+  background-color: rgba(53,255,156,0.08);
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal-overlay {
+
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0,10,5,0.8);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 99999;
+}
+
+.modal {
+
+  padding: 20px;
+
+  width: 320px;
+
+  background: var(--bg-panel-2);
+
+  border: 1px solid var(--accent-green-dim);
+
+  box-shadow:
+    0 0 20px rgba(0,255,150,0.2),
+    0 20px 60px rgba(0,0,0,0.9);
+}
+
+/* =====================================================
+   SLIDER
+===================================================== */
+
+.slider-group {
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  margin: 16px 0;
+}
+
+.slider-group input[type="range"] {
+
+  flex: 1;
+
+  accent-color: var(--accent-green);
+}
+
+.slider-value {
+
+  width: 42px;
+
+  text-align: right;
+
+  color: var(--accent-green);
+
+  font-size: 12px;
+}
+
+/* =====================================================
+   CANVAS (RADAR GRID)
+===================================================== */
+
+.canvas-radar {
+
+  background-color: #000;
+
+  background-image:
+    linear-gradient(rgba(53,255,156,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53,255,156,0.08) 1px, transparent 1px);
+
+  background-size: 40px 40px;
+}
+
+/* =====================================================
+   SCROLLBAR
+===================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #05080c;
+}
+
+::-webkit-scrollbar-thumb {
+
+  background: #163828;
+
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+
+  background: var(--accent-green);
+}
