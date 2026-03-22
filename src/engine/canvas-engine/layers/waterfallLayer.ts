@@ -2,67 +2,33 @@ import { Layer } from "../chart"
 import { Viewport } from "../viewport"
 
 export class WaterfallLayer implements Layer {
-
-  history: number[][]
-  viewport: Viewport
-  chartWidth: number
-  chartHeight: number
-  maxValue: number
+  private buffer!: HTMLCanvasElement
+  private bufferCtx!: CanvasRenderingContext2D
+  private lineHeight = 10
 
   constructor(
-    history: number[][],
-    viewport: Viewport,
-    chartWidth: number,
-    chartHeight: number,
-    maxValue: number
+    private data: Float32Array,
+    private view: Viewport,
+    private width: number,
+    private height: number,
+    private zmin: number,
+    private zmax: number,
   ) {
-    this.history = history
-    this.viewport = viewport
-    this.chartWidth = chartWidth
-    this.chartHeight = chartHeight
-    this.maxValue = maxValue
+
+    // オフスクリーンバッファを作成
+    this.buffer = document.createElement("canvas")
+    this.buffer.width = this.width
+    this.buffer.height = this.height / this.lineHeight
+    this.bufferCtx = this.buffer.getContext("2d")!
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+  const scale = 255 / (this.zmax - this.zmin)
+  this.bufferCtx.clearRect(0, 0, this.width, this.height / this.lineHeight)
 
-    const rows = this.history.length
-    if (rows === 0) return
+  const image = this.bufferCtx.createImageData(this.width, this.height / this.lineHeight)
+  const data = image.data
 
-    const rowHeight = this.chartHeight / rows
-
-    for (let y = 0; y < rows; y++) {
-
-      const frame = this.history[rows - 1 - y]   // 新しいデータを下に
-
-      for (let i = 0; i < frame.length; i++) {
-
-        const x = (i - this.viewport.offset) * this.viewport.pxPerUnit
-        const w = this.viewport.pxPerUnit
-
-        if (x + w < 0 || x > this.chartWidth) continue
-
-        const value = frame[i]
-
-        ctx.fillStyle = this.color(value)
-
-        ctx.fillRect(
-          x,
-          this.chartHeight - (y + 1) * rowHeight,
-          w,
-          rowHeight
-        )
-      }
-    }
-  }
-
-  color(v: number) {
-
-    const t = Math.max(0, Math.min(1, v / this.maxValue))
-
-    const r = 255 * t
-    const g = 180 * (1 - Math.abs(t - 0.5) * 2)
-    const b = 255 * (1 - t)
-
-    return `rgb(${r},${g},${b})`
+  const rowsToDraw = Math.min(Math.floor(this.height / this.lineHeight), this.historySize)
   }
 }

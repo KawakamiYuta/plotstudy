@@ -1,4 +1,5 @@
 import { FrameData } from "../../stores/frameStore"
+import { WaterfallRingBuffer } from "./waterfallRingBuffer"
 
 export class WaterfallEngine {
   private canvas: HTMLCanvasElement
@@ -8,6 +9,7 @@ export class WaterfallEngine {
   private height = 0
 
   private fftSize = 0
+  private wfRing : WaterfallRingBuffer | null = null;
   private zmin = 0
   private zmax = 160
 
@@ -18,10 +20,10 @@ export class WaterfallEngine {
   private bufferCtx!: CanvasRenderingContext2D
   private lineHeight = 10
 
-  // 過去のスペクトラムを保持するring buffer
-  private historySize = 200
-  private ring!: Float32Array
-  private writeIndex = 0
+  // // 過去のスペクトラムを保持するring buffer
+  // private historySize = 200
+  // private ring!: Float32Array
+  // private writeIndex = 0
 
   // X→FFT変換用のルックアップ
   private xmap!: Uint16Array
@@ -61,18 +63,23 @@ export class WaterfallEngine {
   updateFromFrame(frame: FrameData) {
     const spectrum = frame.spectrum
 
+    if(!this.wfRing) {
+      this.wfRing = new WaterfallRingBuffer(spectrum.length, 200)
+    }
     // 初回FFT設定
     if (this.fftSize === 0) {
       this.fftSize = spectrum.length
-      this.ring = new Float32Array(this.historySize * this.fftSize)
-      this.writeIndex = 0
+      // this.ring = new Float32Array(this.historySize * this.fftSize)
+      // this.writeIndex = 0
       this.buildXMap()
     }
 
-    // ring bufferに書き込み
-    const offset = this.writeIndex * this.fftSize
-    this.ring.set(spectrum, offset)
-    this.writeIndex = (this.writeIndex + 1) % this.historySize
+    this.wfRing.push(new Float32Array(spectrum))
+
+    // // ring bufferに書き込み
+    // const offset = this.writeIndex * this.fftSize
+    // this.ring.set(spectrum, offset)
+    // this.writeIndex = (this.writeIndex + 1) % this.historySize
   }
 
   render() {
@@ -80,28 +87,31 @@ export class WaterfallEngine {
   }
 
 private drawWaterfall() {
-  if (!this.ring || !this.buffer) return
+  if (!this.wfRing || !this.buffer) return
 
   const scale = 255 / (this.zmax - this.zmin)
-
-  // バッファをクリア
   this.bufferCtx.clearRect(0, 0, this.width, this.height / this.lineHeight)
 
   const image = this.bufferCtx.createImageData(this.width, this.height / this.lineHeight)
   const data = image.data
 
-  const rowsToDraw = Math.min(Math.floor(this.height / this.lineHeight), this.historySize)
+  const visibleRow = Math.floor(this.height / this.lineHeight)
+  const rowsToDraw = Math.min(this.wfRing.size(), visibleRow)
 
+  console.log("rowsToDraw", this.wfRing.size(), visibleRow)
+  
   for (let y = 0; y < rowsToDraw; y++) {
+    const row = this.wfRing.getRow(y)
     // const historyIndex = (this.writeIndex - rowsToDraw + y + this.historySize) % this.historySize
-    const historyIndex = (this.writeIndex - 1 - y) % this.historySize
-    console.log("xxx", y, historyIndex)
+    // const historyIndex = (this.writeIndex - 1 - y) % this.historySize
+    // console.log("xxx", y, historyIndex)
 
-    const rowOffset = historyIndex * this.fftSize
+    // const rowOffset = historyIndex * this.fftSize
 
     for (let x = 0; x < this.width; x++) {
       const src = this.xmap[x]
-      const v = this.ring[rowOffset + src]
+      // const v = this.ring[rowOffset + src]
+      const v = row[src]
       const c = Math.max(0, Math.min(255, ((v - this.zmin) * scale) | 0))
       const lutIndex = c * 3
       const i = x * 4
