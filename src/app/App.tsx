@@ -11,7 +11,8 @@ import { WaveCanvas } from "../features/WaveformCanvas";
 import { useLayoutStore } from "../stores/useLayoutStore";
 import WaterfallCanvas from "../features/WaterfallCanvas";
 
-
+import { Waterfall3D } from "../features/Waterfall3D"
+import { Waterfall2D } from "../features/Waterfall2D"
 
 export default function App() {
   const { model, index } = useLayoutStore.getState()
@@ -35,6 +36,14 @@ export default function App() {
 
     if (component === "waterfall") return (
       <WaterfallCanvas />
+    )
+
+    if (component === "waterfall3d") return (
+      <Waterfall3D />
+    )
+
+    if (component === "waterfall2d") return (
+      <Waterfall2D />
     )
 
     return <div className="placeholder">{component}</div>
