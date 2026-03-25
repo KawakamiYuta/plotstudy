@@ -3,6 +3,7 @@ export class WaterfallRingBuffer {
     private ring: Float32Array
     private writeIndex = 0
     private count = 0
+    private newestFrameNo = -1
 
     constructor(
         readonly rowSize: number,
@@ -11,7 +12,7 @@ export class WaterfallRingBuffer {
         this.ring = new Float32Array(rowSize * capacity)
     }
 
-    push(row: Float32Array) {
+    push(frameNo: number, row: Float32Array) {
 
         if (row.length !== this.rowSize) {
             throw new Error("row size mismatch")
@@ -25,6 +26,12 @@ export class WaterfallRingBuffer {
         if (this.count < this.capacity) {
             this.count++
         }
+
+        this.newestFrameNo = frameNo
+    }
+
+    getNewestFrameNo() {
+        return this.newestFrameNo
     }
 
     /** newest = 0 */

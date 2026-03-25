@@ -1,11 +1,16 @@
 import { FrameData } from "../../stores/frameStore"
 import { WaterfallRingBuffer } from "./waterfallRingBuffer"
 
+import { CrosshairLayer } from "./layers/crosshairLayer"
+import { attachMouseTracker } from "./controllers/attachMouseTracker"
+import { ChartTransform } from "./chartTransform"
+import { HoverXyLabelLayer } from "./layers/hoverXyLabelLayer"
+
 export type WfBBox = {
-  x0: number   // FFT index start
-  x1: number   // FFT index end
-  y0: number   // row start (最新=0)
-  y1: number   // row end
+  bin0: number   // FFT index start
+  bin1: number   // FFT index end
+  t0: number   // row start (最新=0)
+  t1: number   // row end
 }
 
 export class WaterfallEngine {
@@ -32,15 +37,29 @@ export class WaterfallEngine {
   // private ring!: Float32Array
   // private writeIndex = 0
 
+  private margin = { left: 0, right: 0, top: 0, bottom: 0}
+  private viewport = { pxPerUnit: 2, offset: 0 }
+  private crosshair: CrosshairLayer
+  private transform: ChartTransform
+
   // X→FFT変換用のルックアップ
   private xmap!: Uint16Array
-  private boxes: WfBBox[] = []
+  private boxes: WfBBox[] = [
+    { bin0: 394, bin1: 429, t0: 40, t1: 80}]
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
     const ctx = canvas.getContext("2d")
     if (!ctx) throw new Error("Canvas2D not supported")
     this.ctx = ctx
+
+    this.transform = new ChartTransform(
+      canvas.width, canvas.height, this.margin, this.viewport
+    )
+      this.crosshair = new CrosshairLayer(
+        canvas.width, canvas.height
+    )
+    attachMouseTracker(canvas, this.crosshair, this.transform, () => this.render())
 
     this.buildLUT()
   }
@@ -49,23 +68,44 @@ export class WaterfallEngine {
     this.boxes = boxes
   }
 
-private drawBBox(box: WfBBox) {
-  const x0 = this.freqToX(box.freq0)
-  const x1 = this.freqToX(box.freq1)
-
-  const y0 = this.timeToY(box.time0)
-  const y1 = this.timeToY(box.time1)
-
-  this.ctx.strokeStyle = "rgba(255,0,0,0.9)"
-  this.ctx.lineWidth = 2
-
-  this.ctx.strokeRect(
-    x0,
-    y0,
-    x1 - x0,
-    y1 - y0
-  )
+private binToX(bin: number) {
+  return bin / this.fftSize * this.width
 }
+
+private timeToY(time: number) {
+  return time * this.lineHeight
+}
+
+private drawBBox(box: WfBBox) {
+  const x0 = this.binToX(box.bin0)
+  const x1 = this.binToX(box.bin1)
+
+  const newest = this.wfRing?.getNewestFrameNo() ?? 0
+  const y0 = this.timeToY(newest - box.t0)
+  const y1 = this.timeToY(newest - box.t1)
+
+  // if (y0 < 0 || y1 < 0) return
+  const w = x1 - x0
+  const h = y1 - y0
+
+  // 半透明塗り
+  // this.ctx.fillStyle = "rgba(255, 255, 255, 0.52)"
+  // this.ctx.fillRect(x0, y0, w, h)
+
+// 塗り
+this.ctx.fillStyle = "rgba(255,0,0,0.15)"
+this.ctx.fillRect(x0,y0,w,h)
+
+// 白縁
+this.ctx.lineWidth = 4
+this.ctx.strokeStyle = "white"
+this.ctx.strokeRect(x0,y0,w,h)
+
+// 本枠
+this.ctx.lineWidth = 2
+this.ctx.strokeStyle = "red"
+this.ctx.strokeRect(x0,y0,w,h)
+  }
 
   resize() {
     const rect = this.canvas.getBoundingClientRect()
@@ -76,6 +116,10 @@ private drawBBox(box: WfBBox) {
 
     this.canvas.width = this.width
     this.canvas.height = this.height
+
+    this.transform.resize(this.width, this.height)
+    this.crosshair.width = this.canvas.width
+    this.crosshair.height = this.canvas.height
 
     // オフスクリーンバッファを作成
     this.buffer = document.createElement("canvas")
@@ -104,7 +148,7 @@ private drawBBox(box: WfBBox) {
       this.buildXMap()
     }
 
-    this.wfRing.push(new Float32Array(spectrum))
+    this.wfRing.push(frame.frame_number, new Float32Array(spectrum))
 
     // // ring bufferに書き込み
     // const offset = this.writeIndex * this.fftSize
@@ -113,11 +157,25 @@ private drawBBox(box: WfBBox) {
   }
 
   render() {
+  if (!this.wfRing || !this.buffer) return
+    this.ctx.clearRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight)
     this.drawWaterfall()
 
     for(const box of this.boxes) {
       this.drawBBox(box)
     }
+
+    const visibleRow = Math.floor(this.height / this.lineHeight)
+   const rowsToDraw = Math.min(this.wfRing.size(), visibleRow)
+   const yOffset = Math.max(0, this.wfRing.size() - rowsToDraw)
+
+    let hover = new HoverXyLabelLayer(
+      () => this.crosshair.mouseX,
+      () => this.crosshair.mouseY,
+      (v) => this.xmap[v],
+      (v) => (this.wfRing?.getNewestFrameNo() ?? 0) - Math.round(v / this.lineHeight)
+    )
+    hover.draw(this.ctx);
   }
 
 private drawWaterfall() {
@@ -131,6 +189,7 @@ private drawWaterfall() {
 
   const visibleRow = Math.floor(this.height / this.lineHeight)
   const rowsToDraw = Math.min(this.wfRing.size(), visibleRow)
+  const yOffset = Math.max(0, this.wfRing.size() - rowsToDraw)
   
   for (let y = 0; y < rowsToDraw; y++) {
     const row = this.wfRing.getRow(y)
