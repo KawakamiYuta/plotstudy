@@ -1,6 +1,13 @@
 import { FrameData } from "../../stores/frameStore"
 import { WaterfallRingBuffer } from "./waterfallRingBuffer"
 
+export type WfBBox = {
+  x0: number   // FFT index start
+  x1: number   // FFT index end
+  y0: number   // row start (最新=0)
+  y1: number   // row end
+}
+
 export class WaterfallEngine {
   private canvas: HTMLCanvasElement
   private ctx: CanvasRenderingContext2D
@@ -27,6 +34,7 @@ export class WaterfallEngine {
 
   // X→FFT変換用のルックアップ
   private xmap!: Uint16Array
+  private boxes: WfBBox[] = []
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -36,6 +44,28 @@ export class WaterfallEngine {
 
     this.buildLUT()
   }
+
+  setBoxes(boxes: WfBBox[]) {
+    this.boxes = boxes
+  }
+
+private drawBBox(box: WfBBox) {
+  const x0 = this.freqToX(box.freq0)
+  const x1 = this.freqToX(box.freq1)
+
+  const y0 = this.timeToY(box.time0)
+  const y1 = this.timeToY(box.time1)
+
+  this.ctx.strokeStyle = "rgba(255,0,0,0.9)"
+  this.ctx.lineWidth = 2
+
+  this.ctx.strokeRect(
+    x0,
+    y0,
+    x1 - x0,
+    y1 - y0
+  )
+}
 
   resize() {
     const rect = this.canvas.getBoundingClientRect()
@@ -84,6 +114,10 @@ export class WaterfallEngine {
 
   render() {
     this.drawWaterfall()
+
+    for(const box of this.boxes) {
+      this.drawBBox(box)
+    }
   }
 
 private drawWaterfall() {
@@ -97,8 +131,6 @@ private drawWaterfall() {
 
   const visibleRow = Math.floor(this.height / this.lineHeight)
   const rowsToDraw = Math.min(this.wfRing.size(), visibleRow)
-
-  console.log("rowsToDraw", this.wfRing.size(), visibleRow)
   
   for (let y = 0; y < rowsToDraw; y++) {
     const row = this.wfRing.getRow(y)
