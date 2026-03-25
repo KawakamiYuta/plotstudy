@@ -93,18 +93,25 @@ private drawBBox(box: WfBBox) {
   // this.ctx.fillRect(x0, y0, w, h)
 
 // 塗り
-this.ctx.fillStyle = "rgba(255,0,0,0.15)"
-this.ctx.fillRect(x0,y0,w,h)
+// this.ctx.fillStyle = "rgba(255,255,255,0.5)"
+// this.ctx.fillRect(x0,y0,w,h)
 
-// 白縁
-this.ctx.lineWidth = 4
+// // 白縁
+// this.ctx.lineWidth = 4
+// this.ctx.strokeStyle = "white"
+// this.ctx.strokeRect(x0,y0,w,h)
+
+// // 本枠
+// this.ctx.lineWidth = 2
+// this.ctx.strokeStyle = "red"
+// this.ctx.strokeRect(x0,y0,w,h)
+this.ctx.globalCompositeOperation = "difference"
+
 this.ctx.strokeStyle = "white"
-this.ctx.strokeRect(x0,y0,w,h)
-
-// 本枠
 this.ctx.lineWidth = 2
-this.ctx.strokeStyle = "red"
-this.ctx.strokeRect(x0,y0,w,h)
+this.ctx.strokeRect(x0, y0, w, h)
+
+this.ctx.globalCompositeOperation = "source-over"
   }
 
   resize() {
